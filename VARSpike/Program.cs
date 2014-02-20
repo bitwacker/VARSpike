@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -25,20 +26,20 @@ namespace VARSpike
                 //var prices = new Series(repMP.GetPrices().Select(x => x.Value));
                 var prices = new Series(Data.BrentCrude2013);
 
-                Reporter.Write("Prices", prices);
+                //Reporter.Write("Prices", prices);
 
                 var cr = Domain.ClassicReturnSeries(prices);
-                Reporter.Write("ClassicReturns", cr);
-                var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels, 0) ;
-                crVAR.Compute();
-                Reporter.Write("VaR-ClassicReturns", crVAR);
+                //Reporter.Write("ClassicReturns", cr);
+                //var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels, 0) ;
+                //crVAR.Compute();
+                //Reporter.Write("VaR-ClassicReturns", crVAR);
 
                 var lr = Domain.LogReturnSeries(prices);
-                Reporter.Write("LogReturns", lr);
-                var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels, 0);
-                lrVAR.Compute();
-                Reporter.Write("VaR-LogReturns", lrVAR);
-                
+                //Reporter.Write("LogReturns", lr);
+                //var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels, 0);
+                //lrVAR.Compute();
+                //Reporter.Write("VaR-LogReturns", lrVAR);
+
 
                 using (new CodeTimerConsole("MonteCarlo-CR"))
                 {
@@ -57,16 +58,41 @@ namespace VARSpike
                         Quality_ScenarioCount = 1000,
 
                         // RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
-                        
+
                     };
-                      
+
                     var m = new MonteCarlo(options);
                     m.Compute();
 
-                    Reporter.Write(m);    
+                    Reporter.Write(m);
                 }
 
-                
+                //using (new CodeTimerConsole("MonteCarlo-LR"))
+                //{
+                //    var options = new MonteCarlo.Params()
+                //    {
+                //        Name = "MonteCarlo-using-LogReturns",
+
+                //        ReturnsType = ReturnType.Classic,
+                //        ReturnsDist = new Normal(lr.Mean(), lr.StandardDeviation()),
+                //        InitialPrice = prices.Last(),
+                //        TimeHorizon = 10,
+                //        ConfidenceIntervals = Domain.StandardConfidenceLevels,
+
+                //        // Quality
+                //        Quality_IntraDaySteps = 8,
+                //        Quality_ScenarioCount = 1000,
+
+                //        //RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
+
+                //    };
+
+                //    var m = new MonteCarlo(options);
+                //    m.Compute();
+
+                //    Reporter.Write(m);
+                //}
+
 
             }
         }
@@ -74,22 +100,27 @@ namespace VARSpike
        
     }
 
+    public interface ISample
+    {
+        DateTime At { get; set; }
+        double Value { get; set; }
+    }
 
+    public struct Sample : ISample
+    {
+        public DateTime At { get; set; }
+        public double Value { get; set; }
+    }
+
+    /// <summary>
+    /// TimeSeries - must be oldest to newest (effects returns)
+    /// </summary>
     public class Series : List<double>, IReporter
     {
-        public Series()
-        {
-        }
-
-        public Series(IEnumerable<double> collection)
-            : base(collection)
-        {
-        }
-
-        public Series(int capacity)
-            : base(capacity)
-        {
-        }
+        public Series() { }
+        public Series(IEnumerable<double> oldestToNewest) : base(oldestToNewest) {}
+        public Series(IEnumerable<ISample> sample) : base(sample.OrderBy(x=>x.At).Select(x=>x.Value)){}
+        public Series(int capacity): base(capacity) {}
 
         public override string ToString()
         {
@@ -113,14 +144,6 @@ namespace VARSpike
         }
     }
 
-    public interface ISample
-    {
-        double Value { get; set; }
-    }
-
-    public class MarketPrice : ISample
-    {
-        public DateTime Date { get; set; }
-        public double Value { get; set; }
-    }
+    
+    
 }

@@ -4,14 +4,14 @@ namespace VARSpike
 {
     public class MarketPriceRepository
     {
-        public List<MarketPrice> GetPrices()
+        public List<Sample> GetPrices()
         {
             return SmallDBHelper.ExecuteQuery("Data Source=localhost;Initial Catalog=NimbusT;Integrated Security=SSPI;",
                 r =>
                 {
-                    return new MarketPrice()
+                    return new Sample()
                     {
-                        Date = r.GetDateTime(0),
+                        At = r.GetDateTime(0),
                         Value = (double)r.GetDecimal(1)
                     };
                 },

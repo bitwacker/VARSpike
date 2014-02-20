@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Net.Mime;
+using System.Runtime.ExceptionServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using MathNet.Numerics.Random;
@@ -307,5 +309,89 @@ namespace VARSpike
                 this.writer(format, output);
             }
         }
+    }
+
+
+    public class MatrixResult : IResult
+    {
+        public MatrixDefinition Matrix { get; set; }
+
+        public void Output(ReportFormat format, TextWriter writer)
+        {
+            
+            writer.WriteLine("<table class='matrix'>");
+
+            // Horz Headers
+            writer.WriteLine("<tr>");
+            writer.WriteLine("<td class='null' colspan='1'></td>");
+            for (int cc = 0; cc < Matrix.Size[0]; cc++)
+            {
+                writer.Write("<th>");
+                writer.Write(Matrix.GetHeading(0, cc));
+                writer.Write("</th>");    
+            }
+            writer.WriteLine("</tr>");
+
+            for (int cc = 0; cc < Matrix.Size[1]; cc++)
+            {
+                writer.WriteLine("<tr>");
+                // Head
+                writer.Write("<th>");
+                writer.Write(Matrix.GetHeading(1, cc));
+                writer.Write("</th>");
+                writer.WriteLine();
+
+                // Data
+                for (int xx = 0; xx < Matrix.Size[0]; xx++)
+                {
+                    var pos = new Vector() {xx, cc};
+                    writer.Write("<td>");
+                    writer.Write(Matrix.GetCell(pos));
+                    writer.Write("</td>");
+                }
+                writer.WriteLine();
+                writer.WriteLine("</tr>");
+            }
+
+            
+
+
+            writer.WriteLine("</table>");
+            
+        }
+    }
+
+
+    public class Vector : List<int>
+    {
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append("(");
+            var first = true;
+            foreach (var item in this)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    sb.Append(", ");
+                }
+                sb.Append(item);
+            }
+            sb.Append(")");
+            return sb.ToString();
+        }
+    } 
+
+    public class MatrixDefinition
+    {
+        public Vector Size { get; set; }
+
+
+        public Func<int, int, string> GetHeading { get; set; }
+        public Func<Vector, string> GetCell { get; set; }
     }
 }

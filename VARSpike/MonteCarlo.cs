@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -77,7 +78,7 @@ namespace VARSpike
         
         public Histogram Histogram { get; set; }
 
-        public List<double> ResultRanked { get; set; }
+        public List<double> ResultPercentile { get; set; }
         public ValueAtRisk ResultVarCoVar { get; set; }
 
         public void Compute()
@@ -113,7 +114,7 @@ namespace VARSpike
 
             // Ranked Method
             Histogram = new Histogram(this, 20);
-            ResultRanked = ci.Select(x => QuantileFromRankedSeries(this, x) - initialPrice).ToList();
+            ResultPercentile = ci.Select(x => QuantileFromRankedSeries(this, x) - initialPrice).ToList();
             
             // Var-CoVar Method
             ResultVarCoVar = new ValueAtRisk(new Normal(this.Mean(), this.StandardDeviation()), ci, initialPrice);
@@ -187,12 +188,47 @@ namespace VARSpike
                    
                 },
                 ReportHelper.ToReport(Histogram),
-                new HeadingResult("VaR-VarCoVar"),
-                ResultVarCoVar.ToReport(),
-                new HeadingResult("VaR-Ranked"),
-                new TableResult(ci),
-                new TableResult(ResultRanked),
-                new VerboseResult(WriteVerbose)
+                new VerboseResult(WriteVerbose),
+                new HeadingResult("Results"),
+                new MatrixResult()
+                {
+                    Matrix = new MatrixDefinition()
+                    {
+                        Size = new Vector() { this.Parameters.ConfidenceIntervals.Count, 2 } ,
+                        GetHeading = (dim, idx) =>
+                        {
+                            if (dim == 0)
+                            {
+                                return TextHelper.ToCell(Parameters.ConfidenceIntervals[idx]);
+                            }
+                            else
+                            {
+                                switch (idx)
+                                {
+                                    case(0) :
+                                        return "Percentile";
+                                    case(1):
+                                        return "VaR";
+                                      
+                                }
+                                return "???";
+                            }
+                        },
+                        GetCell = (v) =>
+                        {
+                            if (v[1] == 0)
+                            {
+                                return TextHelper.ToCell(ResultPercentile[v[0]]);
+                            }
+                            else
+                            {
+                                return TextHelper.ToCell(ResultVarCoVar.Results[v[0]].Item2);
+                            }
+                        }
+                    }
+                },
+                
+                
             };
         }
 

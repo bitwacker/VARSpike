@@ -37,12 +37,20 @@ div.cell {
 }
 
 
-
-
 .dataTable td {
     margin: 0;
     padding: 3px 2px;
     font-size: 10pt;
     text-align: right;
+    border: solid 1pt #999;
+}
+
+.matrix {
+    border-collapse: collapse;
+}
+
+.matrix th, .matrix td {
+    padding: 3px 2px;
+    font-size: 10pt;
     border: solid 1pt #999;
 }
