@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeTimer.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Domain.cs" />
     <Compile Include="MonteCarlo.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="SmallDBHelper.cs" />
     <Compile Include="StatsTests.cs" />
     <Compile Include="TextHelper.cs" />
+    <Compile Include="ValueAtRisk.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

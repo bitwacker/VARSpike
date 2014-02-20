@@ -23,8 +23,9 @@ namespace VARSpike
 
         public static void Write(string heading, params IResult[] args)
         {
-            Console.WriteLine("{0}", heading);
-            Console.WriteLine("------------------------");
+            WriteLine("");
+            WriteLine("{0}", heading);
+            WriteLine("------------------------");
             foreach (var arg in args)
             {
                 Write(arg);
@@ -33,12 +34,19 @@ namespace VARSpike
 
         public static void Write(string heading, params IReporter[] args)
         {
-            Console.WriteLine("{0}", heading);
-            Console.WriteLine("------------------------");
+            WriteLine("");
+            WriteLine("{0}", heading);
+            WriteLine("------------------------");
             foreach (var arg in args)
             {
                 Write(arg.ToReport());
             }
+        }
+
+        public static void WriteLine(string format, params object[] args)
+        {
+            if (format == null) return;
+            Write(new StringResult(string.Format(format, args)));
         }
     }
 
@@ -109,8 +117,23 @@ namespace VARSpike
         public override string ToString()
         {
             var nums = source as IEnumerable<double>;
-            if (nums != null) return TextHelper.ToTable(nums);
-            return TextHelper.ToTable(source);
+            if (nums != null) return TextHelper.ToTable(nums) + Environment.NewLine;
+            return TextHelper.ToTable(source) + Environment.NewLine;
+        }
+    }
+
+    public class HeadingResult : IResult
+    {
+        private string heading;
+
+        public HeadingResult(string heading)
+        {
+            this.heading = heading;
+        }
+
+        public override string ToString()
+        {
+            return heading + Environment.NewLine + "====================" + Environment.NewLine;
         }
     }
 
@@ -122,7 +145,7 @@ namespace VARSpike
             foreach (var item in this)
             {
                 sb.Append(item.ToString());
-                sb.AppendLine();
+                
             }
             return sb.ToString();
         }

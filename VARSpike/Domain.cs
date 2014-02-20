@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics;
 using MathNet.Numerics.Distributions;
@@ -8,6 +9,7 @@ namespace VARSpike
     public static class Domain
     {
         public static Normal norm = new Normal(0, 1);
+        public static List<double> StandardConfidenceLevels = new List<double>() {0.9, 0.95, 0.99};
 
         public static double ClassicReturn(double now, double prev)
         {
@@ -19,10 +21,7 @@ namespace VARSpike
             return Math.Log(now / prev, Constants.E);
         }
 
-        public static double VAR(double mean, double stddev, double ci, double deltaTime)
-        {
-            return  mean*deltaTime + stddev * NormalConfidenceIntervalNegOnly(ci)*Math.Sqrt(deltaTime);
-        }
+      
 
         public static double NormalConfidenceIntervalNegOnly(double ci)
         {
@@ -40,6 +39,24 @@ namespace VARSpike
                 last = p;
             }
             return result;
+        }
+
+        public static Series LogReturnSeries(Series prices)
+        {
+            var result = new Series();
+            var last = prices.First();
+            foreach (var p in prices.Skip(1))
+            {
+                result.Add(LogReturn(p, last));
+                last = p;
+            }
+            return result;
+        }
+
+        public static class Symbol
+        {
+            public const string Mu = "μ";
+            public const string Sigma = "σ";
         }
     }
 

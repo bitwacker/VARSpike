@@ -26,34 +26,49 @@ namespace VARSpike
 
                 Reporter.Write("Prices", prices);
 
+
+
                 var cr = Domain.ClassicReturnSeries(prices);
                 Reporter.Write("ClassicReturns", cr);
+                var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels, 0) ;
+                crVAR.Compute();
+                Reporter.Write("VaR-ClassicReturns", crVAR);
 
-                Reporter.Write("ValueAtRisk", new PropertyListResult()
+                var lr = Domain.LogReturnSeries(prices);
+                Reporter.Write("LogReturns", lr);
+                var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels, 0);
+                lrVAR.Compute();
+                Reporter.Write("VaR-LogReturns", lrVAR);
+                
+
+                //var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 100, 1, .95);
+                //m.Compute();
+                //Reporter.Write("MonteCarlo", m);
+
+                //m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 10000, 32, .95);
+                //m.Compute();
+                //Reporter.Write("MonteCarlo", m);
+
+                using (new CodeTimerConsole("MonteCarlo-CR"))
                 {
-                    {"Mean", prices.Mean()},
-                    {"StdDev", prices.StandardDeviation()},
-                    {"CI", 0.95},
-                    {"VAR", Domain.VAR(prices.Mean(), prices.StandardDeviation(), 0.95, 1)}
-                });
+                    var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 30, 1000, 8, Domain.StandardConfidenceLevels, ReturnType.Classic);
+                    m.Compute();
+                    Reporter.Write("MonteCarlo", m);    
+                }
 
-                var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 100, 1, .95);
-                m.Compute();
-                Reporter.Write("MonteCarlo", m);
-
-                m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 10000, 32, .95);
-                m.Compute();
-                Reporter.Write("MonteCarlo", m);
-
-
-                m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 30, 10000, 8, .95);
-                m.Compute();
-                Reporter.Write("MonteCarlo", m);
+                using (new CodeTimerConsole("MonteCarlo-LR"))
+                {
+                    var m = new MonteCarlo(new Normal(lr.Mean(), lr.StandardDeviation()), prices.Last(), 30, 1000, 8, Domain.StandardConfidenceLevels, ReturnType.Log);
+                    m.Compute();
+                    Reporter.Write("MonteCarlo", m);
+                }
+                
+                
 
 
-                m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 60, 50000, 8, .95);
-                m.Compute();
-                Reporter.Write("MonteCarlo", m);    
+                //m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 60, 50000, 8, .95);
+                //m.Compute();
+                //Reporter.Write("MonteCarlo", m);    
             }
         }
 

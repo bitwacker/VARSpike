@@ -32,32 +32,42 @@ namespace VARSpike
         }
     }
 
+    public enum ReturnType
+    {
+        Classic,
+        Log
+    }
+
     public class MonteCarlo : Series, IReporter
     {
-        public MonteCarlo(Normal returnsDist, double priceToday, int timeHorizon, int scenarioCount, int intraDaySteps, double ci)
+        public MonteCarlo(Normal returnsDist, double initialPrice, int timeHorizon, int scenarioCount, int intraDaySteps, List<double> ci, ReturnType returnType)
         {
             this.returnsDist = returnsDist;
-            this.priceToday = priceToday;
+            this.initialPrice = initialPrice;
             this.timeHorizon = timeHorizon;
             this.scenarioCount = scenarioCount;
             this.intraDaySteps = intraDaySteps;
             this.ci = ci;
+            this.returnType = returnType;
         }
 
         // Inputs
         private static readonly Normal stdNormal = new Normal(0,1);
         private readonly Normal returnsDist;
         private readonly Random random = new Random(1);
-        private readonly double priceToday;
+        private readonly double initialPrice;
         private readonly int timeHorizon;
         private readonly int scenarioCount;
         private readonly int intraDaySteps;
-        private readonly double ci;
+        private readonly List<double> ci;
+        private readonly ReturnType returnType;
 
         // Out
-        public double ResultRanked { get; set; }
+        
         public Histogram Histogram { get; set; }
-        public double ResultVarCoVar { get; set; }
+
+        public List<double> ResultRanked { get; set; }
+        public ValueAtRisk ResultVarCoVar { get; set; }
 
         public void Compute()
         {
@@ -65,7 +75,7 @@ namespace VARSpike
             for (int s = 0; s < scenarioCount; s++)
             {
                 var scenario = new Series();
-                var curr = priceToday;
+                var curr = initialPrice;
                 for (int t = 0; t < timeHorizon; t++)
                 {
                     for (int dt = 0; dt < intraDaySteps; dt++)
@@ -73,7 +83,15 @@ namespace VARSpike
                         var nextReturn = GenerateStep(s, t, dt);
                         scenario.Add(nextReturn);
 
-                        curr = curr + curr * nextReturn;    
+                        if (returnType == ReturnType.Classic)
+                        {
+                            curr = curr + curr * nextReturn;        
+                        }
+                        else if (returnType == ReturnType.Log)
+                        {
+                            curr = curr * Math.Exp(nextReturn); 
+                        }
+                        
                     }
                 }
                 this.Add(curr);
@@ -83,20 +101,17 @@ namespace VARSpike
 
             // Ranked Method
             Histogram = new Histogram(this, 20);
-            var priceAtCI = QuantileFromRankedSeries(this, ci);
-            ResultRanked = priceAtCI /* should be smaller */ - priceToday;
-
+            ResultRanked = ci.Select(x => QuantileFromRankedSeries(this, x) - initialPrice).ToList();
+            
             // Var-CoVar Method
-            ResultVarCoVar = ComputeCoVar();
+            ResultVarCoVar = new ValueAtRisk(new Normal(this.Mean(), this.StandardDeviation()), ci, initialPrice);
+            ResultVarCoVar.Compute();
         }
 
-        private double ComputeCoVar()
-        {
-            return Domain.VAR(this.Average(), this.StandardDeviation(), ci, 1) - priceToday;
-        }
+       
 
 
-        private double QuantileFromRankedSeries(IEnumerable<double> seriesSorted, double d)
+        private double QuantileFromRankedSeries(IEnumerable<double> seriesSorted, double ci)
         {
             double count = seriesSorted.Count();
             var indx = (int)Math.Floor(count * (1-ci));
@@ -133,11 +148,15 @@ namespace VARSpike
                     {"TimeHorizon", timeHorizon},
                     {"IntraDaySteps", intraDaySteps},
                     {"ScenarioCount", scenarioCount},
-                    {"Normal", string.Format("m={0}, s={1}", returnsDist.Mean, returnsDist.StdDev)},
-                    {"VaR-Rank (As Price delta)", ResultRanked},
-                    {"VaR-VarCoVar (As Price delta)", ResultVarCoVar}
+                    {"ReturnType", returnType},
+                    {"Normal", TextHelper.ToCell(returnsDist)},
+                   
                 },
-                ReportHelper.ToReport(Histogram)
+                ReportHelper.ToReport(Histogram),
+                new HeadingResult("VaR-VarCoVar"),
+                ResultVarCoVar.ToReport(),
+                new HeadingResult("VaR-Ranked"),
+                new TableResult(ResultRanked),
                 //new TableResult(this)
             };
         }

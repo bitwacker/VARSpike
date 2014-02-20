@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MathNet.Numerics.Distributions;
 
 namespace VARSpike
 {
@@ -55,11 +56,16 @@ namespace VARSpike
 
         public static string ToCell(double d)
         {
-            return d.ToString("0.00000").PadLeft(11);
+            return d.ToString("0.000000").PadLeft(11);
         }
 
         public  static string ToCell(object d)
         {
+            var normal = d as Normal;
+            if (normal != null)
+            {
+                return string.Format("{0}={1} {2}={3}", Domain.Symbol.Mu, ToCell(normal.Mean), Domain.Symbol.Sigma, ToCell(normal.StdDev));
+            }
             return d.ToString().PadLeft(11);
         }
 
