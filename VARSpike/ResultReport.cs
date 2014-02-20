@@ -8,6 +8,7 @@ using System.Net.Mime;
 using System.Runtime.ExceptionServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using MathNet.Numerics.LinearAlgebra.Generic.Solvers.Status;
 using MathNet.Numerics.Random;
 
 namespace VARSpike
@@ -333,7 +334,7 @@ namespace VARSpike
 
             // Horz Headers
             writer.WriteLine("<tr>");
-            writer.WriteLine("<td class='null' colspan='1'></td>");
+            writer.WriteLine("<td class='null' colspan='{0}'></td>", Matrix.Size.Count-1);
             for (int cc = 0; cc < Matrix.Size[0]; cc++)
             {
                 writer.Write("<th>");
@@ -342,170 +343,85 @@ namespace VARSpike
             }
             writer.WriteLine("</tr>");
 
-            for (int cc = 0; cc < Matrix.Size[1]; cc++)
+            foreach (var row in GetRowSpecs())
             {
                 writer.WriteLine("<tr>");
-                // Head
-                writer.Write("<th>");
-                writer.Write(Matrix.GetHeading(1, cc));
-                writer.Write("</th>");
-                writer.WriteLine();
 
-                // Data
-                for (int xx = 0; xx < Matrix.Size[0]; xx++)
+                // Headers
+                for (int rr = 0; rr < row.Count; rr++)
                 {
-                    var pos = new Vector<int>() {xx, cc};
+                    writer.Write("<th>");
+                    writer.Write(Matrix.GetHeading(rr+1, row[rr]));
+                    writer.Write("</th>");
+                }
+
+                // Data Over- Dim0
+                for (int cc = 0; cc < Matrix.Size[0]; cc++)
+                {
+                    var pos = new Vector<int>(row);
+                    pos.Insert(0, cc);
                     writer.Write("<td>");
                     writer.Write(Matrix.GetCell(pos));
                     writer.Write("</td>");
                 }
-                writer.WriteLine();
+
+
                 writer.WriteLine("</tr>");
             }
 
             writer.WriteLine("</table>");
             
         }
-    }
 
+      
 
-    public class Vector<T> : List<T>
-    {
-        public Vector()
+        private IEnumerable<Vector<int>> GetRowSpecs()
         {
-        }
-
-        public Vector(int capacity) : base(capacity)
-        {
-        }
-
-        public Vector(IEnumerable<T> collection) : base(collection)
-        {
-        }
-
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.Append("(");
-            var first = true;
-            foreach (var item in this)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    sb.Append(", ");
-                }
-                sb.Append(item);
-            }
-            sb.Append(")");
-            return sb.ToString();
-        }
-    }
-
-  
-
-    public class MatrixDefinition
-    {
-        public Vector<int> Size { get; set; }
-
-
-        public Func<int, int, string> GetHeading { get; set; }
-        public Func<Vector<int>, string> GetCell { get; set; }
-    }
-
-    public class MatrixDefinitionBySet : MatrixDefinition
-    {
-        protected MatrixDefinitionBySet()
-        {
-            GetHeading = GetHeadingBySet;
-            GetCell = GetCellBySet;
-        }
-
-        public List<List<object>> Sets { get; protected set; }
-
-        public Func<Vector<object>, string> RenderCell { get; set; }
-
-        private string GetCellBySet(Vector<int> cell)
-        {
-            try
-            {
-                var element = new Vector<object>();
-                var setIdx = 0;
-                foreach (int i in cell)
-                {
-                    element.Add(Sets[setIdx][i]);
-                    setIdx++;
-                }
-                return RenderCell(element);
-            }
-            catch (Exception ex)
-            {
-                return "[ERR] " + cell+ ex;
-            }
+            
+            var innerCounts = new List<int>(Matrix.Size);
+            innerCounts.RemoveAt(0);
+            return TreeProduct(innerCounts);
+            
             
         }
 
-        private string GetHeadingBySet(int setIdx, int itemIdx)
+        public static List<Vector<int>> TreeProduct(List<int> kidLengths)
         {
-            return TextHelper.ToCell(Sets[setIdx][itemIdx]);
-        }
-
-        public static MatrixDefinitionBySet Define(Func<Vector<object>, string> renderCell , params IEnumerable[] sets)
-        {
-            var result = new List<List<object>>();
-            foreach (var set in sets)
+            if (kidLengths.Count == 1)
             {
-                var l = new List<object>();
-                foreach (var item in set)
+                var node = new List<Vector<int>>();
+                for (int cc = 0; cc < kidLengths[0]; cc++)
                 {
-                    l.Add(item);
+                    node.Add(new Vector<int>() { cc });
                 }
-                result.Add(l);
+                return node;
             }
-            return new MatrixDefinitionBySet()
+            else
             {
-                Sets = result,
-                Size = new Vector<int>(result.Select(x => x.Count())),
-                RenderCell = renderCell
-            };
-        }
-    }
+                var myResults = new List<Vector<int>>();
 
-    public class MatrixDefinitionBySet2D<T1, T2> : MatrixDefinitionBySet
-    {
-        public static MatrixDefinitionBySet Define(Func<T1, T2, string> renderCell, IEnumerable<T1> set1, IEnumerable<T2> set2)
+                var myCount = kidLengths.First();
+                var innerCounts = new List<int>(kidLengths);
+                innerCounts.RemoveAt(0);
+                
+                for (int cc = 0; cc < myCount; cc++)
+                {
+                    var innerSet = TreeProduct(innerCounts);
+                    foreach (var inner in innerSet)
+                    {
+                        inner.Insert(0, cc);
+                        myResults.Add(inner);
+                    }
+                }
+                return myResults;
+            }
+        }
+
+        private int RowCount(MatrixDefinition matrix)
         {
-            var result = new List<List<object>>();
-            result.Add(new List<object>(set1.Cast<object>()));
-            result.Add(new List<object>(set2.Cast<object>()));
-
-            return new MatrixDefinitionBySet2D<T1, T2>()
-            {
-                Sets = result,
-                Size = new Vector<int>(result.Select(x => x.Count())),
-                RenderCell = (vector) => renderCell((T1) vector[0], (T2) vector[1])
-            };
+            return matrix.Size.Skip(1).Max();
         }
     }
 
-    public class MatrixDefinitionBySet3D<T1, T2, T3> : MatrixDefinitionBySet
-    {
-        public static MatrixDefinitionBySet Define(Func<T1, T2, T3, string> renderCell, IEnumerable<T1> set1, IEnumerable<T2> set2, IEnumerable<T3> set3)
-        {
-            var result = new List<List<object>>();
-            result.Add(new List<object>(set1.Cast<object>()));
-            result.Add(new List<object>(set2.Cast<object>()));
-            result.Add(new List<object>(set3.Cast<object>()));
 
-            return new MatrixDefinitionBySet3D<T1, T2, T3>()
-            {
-                Sets = result,
-                Size = new Vector<int>(result.Select(x => x.Count())),
-                RenderCell = (vector) => renderCell((T1)vector[0], (T2)vector[1], (T3)vector[2])
-            };
-        }
-    }
 }

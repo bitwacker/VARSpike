@@ -55,6 +55,7 @@
     <Compile Include="Data.cs" />
     <Compile Include="Domain.cs" />
     <Compile Include="MarketPriceRepository.cs" />
+    <Compile Include="MatrixDefinition.cs" />
     <Compile Include="MonteCarlo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,9 +63,10 @@
     <Compile Include="ReportHelper.cs" />
     <Compile Include="ResultReport.cs" />
     <Compile Include="SmallDBHelper.cs" />
-    <Compile Include="StatsTests.cs" />
+    <Compile Include="GeneralTests.cs" />
     <Compile Include="TextHelper.cs" />
     <Compile Include="ValueAtRisk.cs" />
+    <Compile Include="Vector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

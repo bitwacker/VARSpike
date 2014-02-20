@@ -88,12 +88,31 @@ namespace VARSpike
                 m2.Compute();
 
                 Reporter.Write(m2);
-                
+
+                Reporter.Write(new HeadingResult("COMPARISON"));
 
                 Reporter.Write(new MatrixResult(MatrixDefinitionBySet3D<double, string, string>.Define(
                     (ci, method, type) =>
                     {
-                        return "";
+                        MonteCarlo m = null;
+                        if (method == "ClassicReturn")
+                        {
+                            m = m1;
+                        }
+                        else // LogREturn
+                        {
+                            m = m2;
+                        }
+
+                        if (type == "VaR")
+                        {
+                            return TextHelper.ToCell(m.ResultVarCoVar.Results[m.Parameters.ConfidenceIntervals.IndexOf(ci)].Item2);
+                        }
+                        else // Percentile
+                        {
+                            return TextHelper.ToCell(m.ResultPercentile[m.Parameters.ConfidenceIntervals.IndexOf(ci)]);
+                        }
+                        
                     },
                     options1.ConfidenceIntervals,
                     new String[] { "ClassicReturn", "LogReturn" },

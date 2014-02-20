@@ -202,6 +202,8 @@ namespace VARSpike
                     {"Normal", returnsDist},
                    
                 },
+                new HeadingResult("Scenarios (ordered random-walk) results"),
+                new TableResult(this),
                 ReportHelper.ToReport(Histogram),
                 new VerboseResult(WriteVerbose),
                 new HeadingResult("Results"),
