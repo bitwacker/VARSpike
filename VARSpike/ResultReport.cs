@@ -98,7 +98,7 @@ namespace VARSpike
             var sb = new StringBuilder();
             foreach (var item in this)
             {
-                sb.AppendFormat("{0,10}: {1} ",item.Item1, TextHelper.ToCell(item.Item2));
+                sb.AppendFormat("{0,15}: {1} ",item.Item1, TextHelper.ToCell(item.Item2));
                 sb.AppendLine();
             }
             return sb.ToString();

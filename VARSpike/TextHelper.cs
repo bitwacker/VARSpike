@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using MathNet.Numerics.Distributions;
 
@@ -64,7 +65,11 @@ namespace VARSpike
             var normal = d as Normal;
             if (normal != null)
             {
-                return string.Format("{0}={1} {2}={3}", Domain.Symbol.Mu, ToCell(normal.Mean), Domain.Symbol.Sigma, ToCell(normal.StdDev));
+                return string.Format("Norm[{0}={1}, {2}={3}]", Domain.Symbol.Mu, ToCell(normal.Mean), Domain.Symbol.Sigma, ToCell(normal.StdDev));
+            }
+            if (d is double)
+            {
+                return ToCell((double) d);
             }
             return d.ToString().PadLeft(11);
         }
@@ -78,6 +83,13 @@ namespace VARSpike
             for (int cc = 0; cc < countOn; cc++) sb.Append(on);
             for (int cc = 0; cc < countOff; cc++) sb.Append(off);
             return sb.ToString();
+        }
+
+        public static object Format(string format, params object[] args)
+        {
+            if (format == null) return null;
+            var toCell = args.Select(ToCell).ToArray();
+            return string.Format(format, toCell);
         }
     }
 }

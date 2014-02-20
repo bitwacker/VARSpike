@@ -156,6 +156,7 @@ namespace VARSpike
                 new HeadingResult("VaR-VarCoVar"),
                 ResultVarCoVar.ToReport(),
                 new HeadingResult("VaR-Ranked"),
+                new TableResult(ci),
                 new TableResult(ResultRanked),
                 //new TableResult(this)
             };

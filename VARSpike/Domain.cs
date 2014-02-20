@@ -26,7 +26,8 @@ namespace VARSpike
         public static double NormalConfidenceIntervalNegOnly(double ci)
         {
             // NORM.INV
-            return norm.InverseCumulativeDistribution((1 - ci)/2);
+           // return norm.InverseCumulativeDistribution((1 - ci)/2);
+            return norm.InverseCumulativeDistribution((1 - ci));
         }
 
         public static Series ClassicReturnSeries(Series prices)

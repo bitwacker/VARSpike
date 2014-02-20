@@ -51,14 +51,14 @@ namespace VARSpike
 
                 using (new CodeTimerConsole("MonteCarlo-CR"))
                 {
-                    var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 30, 1000, 8, Domain.StandardConfidenceLevels, ReturnType.Classic);
+                    var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 30, 10000, 8, Domain.StandardConfidenceLevels, ReturnType.Classic);
                     m.Compute();
                     Reporter.Write("MonteCarlo", m);    
                 }
 
                 using (new CodeTimerConsole("MonteCarlo-LR"))
                 {
-                    var m = new MonteCarlo(new Normal(lr.Mean(), lr.StandardDeviation()), prices.Last(), 30, 1000, 8, Domain.StandardConfidenceLevels, ReturnType.Log);
+                    var m = new MonteCarlo(new Normal(lr.Mean(), lr.StandardDeviation()), prices.Last(), 30, 10000, 8, Domain.StandardConfidenceLevels, ReturnType.Log);
                     m.Compute();
                     Reporter.Write("MonteCarlo", m);
                 }
@@ -113,9 +113,9 @@ namespace VARSpike
                 new PropertyListResult()
                 {
                     {"Size", Count},
-                    {"Mean", Statistics.Mean(this)},
+                    {"Mean",  Statistics.Mean(this)},
                     {"StdDev", Statistics.StandardDeviation(this)},
-                    {"Min/Med/Max", string.Format("{0}/{1}/{2}",Statistics.Minimum(this), Statistics.Median(this), Statistics.Maximum(this))}
+                    {"Min/Med/Max", TextHelper.Format("{0}/{1}/{2}", Statistics.Minimum(this), Statistics.Median(this), Statistics.Maximum(this))}
                 },
                 new TableResult(this)
             };
@@ -131,26 +131,5 @@ namespace VARSpike
     {
         public DateTime Date { get; set; }
         public double Value { get; set; }
-    }
-
-    public class MarketPriceRepository
-    {
-        public List<MarketPrice> GetPrices()
-        {
-            return SmallDBHelper.ExecuteQuery("Data Source=localhost;Initial Catalog=NimbusT;Integrated Security=SSPI;",
-                r =>
-                {
-                    return new MarketPrice()
-                    {
-                        Date = r.GetDateTime(0),
-                        Value = (double)r.GetDecimal(1)
-                    };
-                },
-                @"SELECT Date, Price  FROM MarketPrice WHERE 
-	[Index]=30004 -- Brent DTD
-	AND [Type]=100068 -- Closing
-	AND [Source]=3 -- Bulldog
-	AND [Date]>='2013-1-1' AND [Date]<='2013-12-31'");
-        }
     }
 }
