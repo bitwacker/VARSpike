@@ -389,19 +389,10 @@ namespace VARSpike
             if (rowIdx > 0)
             {
                 if (specs[rowIdx - 1][col] == row[col]) return 0;
-                
-
             }
-            
-            
+
             // SkipCount
-            //return specs.Skip(rowIdx).Count(x => x[col] == row[col]);
-            var skip = specs.Skip(rowIdx).ToList();
-            var same = skip.TakeWhile(x => x[col] == row[col]).ToList();
-            return same.Count;                
-            
-
-
+            return specs.Skip(rowIdx).TakeWhile(x => x[col] == row[col]).Count();
         }
 
 

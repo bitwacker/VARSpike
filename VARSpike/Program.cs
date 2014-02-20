@@ -149,38 +149,38 @@ namespace VARSpike
                         }
                     },
 
-                     new MonteCarloResult()
-                    {
-                        Params =  new MonteCarlo.Params()
-                        {
+                    // new MonteCarloResult()
+                    //{
+                    //    Params =  new MonteCarlo.Params()
+                    //    {
                             
-                            ReturnsType = ReturnType.Log,
-                            ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(lr.Mean()), ExcelHelper.ToExcelPrecision(lr.StandardDeviation())),
-                            InitialPrice = prices.Last(),
-                            TimeHorizon = commonTimeHorizon,
-                            ConfidenceIntervals = Domain.StandardConfidenceLevels,
+                    //        ReturnsType = ReturnType.Log,
+                    //        ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(lr.Mean()), ExcelHelper.ToExcelPrecision(lr.StandardDeviation())),
+                    //        InitialPrice = prices.Last(),
+                    //        TimeHorizon = commonTimeHorizon,
+                    //        ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
-                            // Quality
-                            Quality_IntraDaySteps = 32,
-                            Quality_ScenarioCount = 250000,
-                        },
-                    },
-                    new MonteCarloResult()
-                    {
-                        Params = new MonteCarlo.Params()
-                        {
+                    //        // Quality
+                    //        Quality_IntraDaySteps = 32,
+                    //        Quality_ScenarioCount = 250000,
+                    //    },
+                    //},
+                    //new MonteCarloResult()
+                    //{
+                    //    Params = new MonteCarlo.Params()
+                    //    {
                             
-                            ReturnsType = ReturnType.Classic,
-                            ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(cr.Mean()), ExcelHelper.ToExcelPrecision(cr.StandardDeviation())),
-                            InitialPrice = prices.Last(),
-                            TimeHorizon = commonTimeHorizon,
-                            ConfidenceIntervals = Domain.StandardConfidenceLevels,
+                    //        ReturnsType = ReturnType.Classic,
+                    //        ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(cr.Mean()), ExcelHelper.ToExcelPrecision(cr.StandardDeviation())),
+                    //        InitialPrice = prices.Last(),
+                    //        TimeHorizon = commonTimeHorizon,
+                    //        ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
-                            // Quality
-                            Quality_IntraDaySteps = 32,
-                            Quality_ScenarioCount = 250000
-                        }
-                    },
+                    //        // Quality
+                    //        Quality_IntraDaySteps = 32,
+                    //        Quality_ScenarioCount = 250000
+                    //    }
+                    //},
                 };
 
 
