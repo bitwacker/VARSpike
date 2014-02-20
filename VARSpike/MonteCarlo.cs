@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Schema;
+using MathNet.Numerics;
 using MathNet.Numerics.Distributions;
 using MathNet.Numerics.Statistics;
 
@@ -110,9 +111,14 @@ namespace VARSpike
 
        
 
-
+        /// <summary>
+        /// http://en.wikipedia.org/wiki/Percentile
+        /// </summary>
         private double QuantileFromRankedSeries(IEnumerable<double> seriesSorted, double ci)
         {
+            //var q = Statistics.QuantileCustom(seriesSorted, ci, QuantileDefinition.Excel);
+
+            return Statistics.Percentile(seriesSorted, (int) ((1-ci) * 100));
             double count = seriesSorted.Count();
             var indx = (int)Math.Floor(count * (1-ci));
             return seriesSorted.Skip(indx).FirstOrDefault();

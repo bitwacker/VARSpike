@@ -1,0 +1,22 @@
+﻿body
+{
+    font-family: Consolas;
+    font-size: 10pt;
+}
+
+div.head {
+    display: inline-block;
+    min-width: 50px;
+    font-weight: bold;
+    text-align: right;
+}
+
+div.cell {
+    display: inline-block;
+    min-width: 50px;
+    white-space: pre;
+}
+
+.dataTable td {
+    font-size: 10pt;
+}

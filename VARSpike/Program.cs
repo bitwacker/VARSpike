@@ -13,13 +13,14 @@ namespace VARSpike
 {
     class Program
     {
-        private static StreamWriter FileWriter;
+        
 
         static void Main(string[] args)
         {
-            Reporter.Implementation = ConsoleWriter;
-            using (FileWriter = new StreamWriter(File.OpenWrite("VARSpike.txt")))
+            
+            using (Reporter.HtmlOutput("VARSpike.html"))
             {
+                
                 //var repMP = new MarketPriceRepository();
                 //var prices = new Series(repMP.GetPrices().Select(x => x.Value));
                 var prices = new Series(Data.BrentCrude2013);
@@ -51,14 +52,14 @@ namespace VARSpike
 
                 using (new CodeTimerConsole("MonteCarlo-CR"))
                 {
-                    var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 30, 10000, 8, Domain.StandardConfidenceLevels, ReturnType.Classic);
+                    var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 100000, 8, Domain.StandardConfidenceLevels, ReturnType.Classic);
                     m.Compute();
                     Reporter.Write("MonteCarlo", m);    
                 }
 
                 using (new CodeTimerConsole("MonteCarlo-LR"))
                 {
-                    var m = new MonteCarlo(new Normal(lr.Mean(), lr.StandardDeviation()), prices.Last(), 30, 10000, 8, Domain.StandardConfidenceLevels, ReturnType.Log);
+                    var m = new MonteCarlo(new Normal(lr.Mean(), lr.StandardDeviation()), prices.Last(), 10, 100000, 8, Domain.StandardConfidenceLevels, ReturnType.Log);
                     m.Compute();
                     Reporter.Write("MonteCarlo", m);
                 }
@@ -72,15 +73,7 @@ namespace VARSpike
             }
         }
 
-        private static void ConsoleWriter(IResult res)
-        {
-            var txt = res.ToString();
-            Console.WriteLine(txt);
-            if (FileWriter != null)
-            {
-                FileWriter.WriteLine(txt);
-            }
-        }
+       
     }
 
 

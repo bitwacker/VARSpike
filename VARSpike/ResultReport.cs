@@ -1,31 +1,42 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Mime;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace VARSpike
 {
+    public enum ReportFormat
+    {
+        Console,
+        Text,
+        Html
+    }
+
     public static class Reporter
     {
         static Reporter()
         {
             // Default
-            Implementation = x => Console.WriteLine(x.ToString());
+            ImplementationConsole = x => Console.WriteLine(x.ToString());
         }
 
-        public static Action<IResult> Implementation { get; set; }
+        public static Action<IResult> ImplementationConsole { get; set; }
+        public static Action<IResult> ImplementationFileText { get; set; }
+        public static Action<IResult> ImplementationFileHTML { get; set; }
 
         public static void Write(IResult result)
         {
-            Implementation(result);
+            if (ImplementationConsole != null) ImplementationConsole(result);
+            if (ImplementationFileText != null) ImplementationFileText(result);
+            if (ImplementationFileHTML != null) ImplementationFileHTML(result);
         }
 
         public static void Write(string heading, params IResult[] args)
         {
-            WriteLine("");
-            WriteLine("{0}", heading);
-            WriteLine("------------------------");
+            Write(new HeadingResult(heading));
             foreach (var arg in args)
             {
                 Write(arg);
@@ -34,9 +45,7 @@ namespace VARSpike
 
         public static void Write(string heading, params IReporter[] args)
         {
-            WriteLine("");
-            WriteLine("{0}", heading);
-            WriteLine("------------------------");
+            Write(new HeadingResult(heading));
             foreach (var arg in args)
             {
                 Write(arg.ToReport());
@@ -48,6 +57,49 @@ namespace VARSpike
             if (format == null) return;
             Write(new StringResult(string.Format(format, args)));
         }
+
+        private class HtmlOut : IDisposable
+        {
+            private StreamWriter fileWriter;
+            private Action<IResult> old;
+
+            public HtmlOut(string fileName)
+            {
+                old = Reporter.ImplementationFileHTML;
+                Reporter.ImplementationFileHTML = this.ImplementationFileHTML;
+
+                fileWriter = new StreamWriter(File.OpenWrite(fileName));
+                WriteHeader();
+            }
+
+            private void ImplementationFileHTML(IResult obj)
+            {
+                fileWriter.WriteLine(obj.ToHTML());
+            }
+
+            private void WriteHeader()
+            {
+                fileWriter.WriteLine("<html>");
+                fileWriter.WriteLine("<head>");
+                fileWriter.WriteLine("<link href='result-report.css' rel='stylesheet' />");
+                fileWriter.WriteLine("</head>");
+                fileWriter.WriteLine("<body>");
+            }
+
+            public void Dispose()
+            {
+                fileWriter.WriteLine("</body>");
+                fileWriter.WriteLine("</html>");
+
+                fileWriter.Dispose();
+                Reporter.ImplementationFileHTML = old;
+            }
+        }
+
+        public static IDisposable HtmlOutput(string fileName)
+        {
+            return new HtmlOut(fileName);
+        }
     }
 
     public interface IReporter
@@ -57,7 +109,7 @@ namespace VARSpike
 
     public interface  IResult
     {
-
+        string ToHTML();
     }
 
     public class StringResult : IResult
@@ -82,6 +134,11 @@ namespace VARSpike
         {
             return String;
         }
+
+        public string ToHTML()
+        {
+            return string.Format("<span>{0}</span>", String);
+        }
     }
 
 
@@ -103,6 +160,19 @@ namespace VARSpike
             }
             return sb.ToString();
         }
+
+        public string ToHTML()
+        {
+            var sb = new StringBuilder();
+            sb.Append("<ul>");
+            foreach (var item in this)
+            {
+                sb.AppendFormat("<li><div class='head'>{0,15}</div> <div class='cell'>{1}</div></li> ", item.Item1, TextHelper.ToCell(item.Item2));
+                sb.AppendLine();
+            }
+            sb.Append("</ul>");
+            return sb.ToString();
+        }
     }
 
     public class TableResult : IResult
@@ -120,6 +190,41 @@ namespace VARSpike
             if (nums != null) return TextHelper.ToTable(nums) + Environment.NewLine;
             return TextHelper.ToTable(source) + Environment.NewLine;
         }
+
+        public string ToHTML()
+        {
+            return ToTable(source);
+        }
+
+        public static string ToTable(IEnumerable data)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("<table class='dataTable'>");
+            int cc = 0;
+            sb.AppendLine("<tr>");
+            bool open = false;
+            foreach (var d in data)
+            {
+                
+                sb.Append("<td>");
+                sb.Append(TextHelper.ToCell(d));
+                sb.Append("</td>");
+                open = true;
+
+                cc++;
+                if (cc % 10 == 0)
+                {
+                    sb.AppendLine("</tr>");
+                    sb.AppendLine("<tr>");
+                    open = false;
+                }
+            
+            }
+            if (open) sb.AppendLine("</tr>");
+            sb.AppendLine("</table>");
+            return sb.ToString();
+        }
     }
 
     public class HeadingResult : IResult
@@ -135,6 +240,11 @@ namespace VARSpike
         {
             return heading + Environment.NewLine + "====================" + Environment.NewLine;
         }
+
+        public string ToHTML()
+        {
+            return string.Format("<h3>{0}</h3>", heading);
+        }
     }
 
     public class CompountResult : List<IResult>, IResult
@@ -146,6 +256,17 @@ namespace VARSpike
             {
                 sb.Append(item.ToString());
                 
+            }
+            return sb.ToString();
+        }
+
+        public string ToHTML()
+        {
+            var sb = new StringBuilder();
+            foreach (var item in this)
+            {
+                sb.Append(item.ToHTML());
+
             }
             return sb.ToString();
         }
