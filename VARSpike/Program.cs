@@ -41,57 +41,64 @@ namespace VARSpike
                 //Reporter.Write("VaR-LogReturns", lrVAR);
 
 
-                using (new CodeTimerConsole("MonteCarlo-CR"))
+                
+                var options1 = new MonteCarlo.Params()
                 {
-                    var options = new MonteCarlo.Params()
+                    Name = "MonteCarlo-using-ClassicReturns",
+
+                    ReturnsType = ReturnType.Classic,
+                    ReturnsDist = new Normal(cr.Mean(), cr.StandardDeviation()),
+                    InitialPrice = prices.Last(),
+                    TimeHorizon = 10,
+                    ConfidenceIntervals = Domain.StandardConfidenceLevels,
+
+                    // Quality
+                    Quality_IntraDaySteps = 8,
+                    Quality_ScenarioCount = 1000,
+
+                    // RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
+
+                };
+
+                var m1 = new MonteCarlo(options1);
+                m1.Compute();
+
+                Reporter.Write(m1);
+                
+
+                var options2 = new MonteCarlo.Params()
+                {
+                    Name = "MonteCarlo-using-LogReturns",
+
+                    ReturnsType = ReturnType.Classic,
+                    ReturnsDist = new Normal(lr.Mean(), lr.StandardDeviation()),
+                    InitialPrice = prices.Last(),
+                    TimeHorizon = 10,
+                    ConfidenceIntervals = Domain.StandardConfidenceLevels,
+
+                    // Quality
+                    Quality_IntraDaySteps = 8,
+                    Quality_ScenarioCount = 1000,
+
+                    //RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
+
+                };
+
+                var m2 = new MonteCarlo(options2);
+                m2.Compute();
+
+                Reporter.Write(m2);
+                
+
+                Reporter.Write(new MatrixResult(MatrixDefinitionBySet3D<double, string, string>.Define(
+                    (ci, method, type) =>
                     {
-                        Name = "MonteCarlo-using-ClassicReturns",
-
-                        ReturnsType = ReturnType.Classic,
-                        ReturnsDist = new Normal(cr.Mean(), cr.StandardDeviation()),
-                        InitialPrice = prices.Last(),
-                        TimeHorizon = 10,
-                        ConfidenceIntervals = Domain.StandardConfidenceLevels,
-
-                        // Quality
-                        Quality_IntraDaySteps = 8,
-                        Quality_ScenarioCount = 1000,
-
-                        // RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
-
-                    };
-
-                    var m = new MonteCarlo(options);
-                    m.Compute();
-
-                    Reporter.Write(m);
-                }
-
-                //using (new CodeTimerConsole("MonteCarlo-LR"))
-                //{
-                //    var options = new MonteCarlo.Params()
-                //    {
-                //        Name = "MonteCarlo-using-LogReturns",
-
-                //        ReturnsType = ReturnType.Classic,
-                //        ReturnsDist = new Normal(lr.Mean(), lr.StandardDeviation()),
-                //        InitialPrice = prices.Last(),
-                //        TimeHorizon = 10,
-                //        ConfidenceIntervals = Domain.StandardConfidenceLevels,
-
-                //        // Quality
-                //        Quality_IntraDaySteps = 8,
-                //        Quality_ScenarioCount = 1000,
-
-                //        //RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
-
-                //    };
-
-                //    var m = new MonteCarlo(options);
-                //    m.Compute();
-
-                //    Reporter.Write(m);
-                //}
+                        return "";
+                    },
+                    options1.ConfidenceIntervals,
+                    new String[] { "ClassicReturn", "LogReturn" },
+                    new String[] { "Percentile", "VaR" }
+                    )));
 
 
             }

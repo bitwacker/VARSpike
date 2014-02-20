@@ -175,6 +175,21 @@ namespace VARSpike
 
         public override IResult ToReport()
         {
+            //var resultMatrix = MatrixDefinitionBySet.Define(
+            //    Parameters.ConfidenceIntervals,
+            //    new String[] { "Percentile", "VaR" }
+            //    );
+
+            var resultMatrix = MatrixDefinitionBySet2D<double, string>.Define(
+                (ci, s) =>
+                {
+                    if (s == "VaR") return ResultVarCoVar.Results[Parameters.ConfidenceIntervals.IndexOf(ci)].Item2.ToString();
+                    return ResultPercentile[Parameters.ConfidenceIntervals.IndexOf(ci)].ToString();
+                },
+                Parameters.ConfidenceIntervals,
+                new String[] { "Percentile", "VaR" }
+                );
+
             return new CompountResult()
             {
                 new HeadingResult(Parameters.Name ?? "MonteCarlo"),
@@ -192,41 +207,45 @@ namespace VARSpike
                 new HeadingResult("Results"),
                 new MatrixResult()
                 {
-                    Matrix = new MatrixDefinition()
-                    {
-                        Size = new Vector() { this.Parameters.ConfidenceIntervals.Count, 2 } ,
-                        GetHeading = (dim, idx) =>
-                        {
-                            if (dim == 0)
-                            {
-                                return TextHelper.ToCell(Parameters.ConfidenceIntervals[idx]);
-                            }
-                            else
-                            {
-                                switch (idx)
-                                {
-                                    case(0) :
-                                        return "Percentile";
-                                    case(1):
-                                        return "VaR";
+                    Matrix = resultMatrix
+                }
+                //new MatrixResult()
+                //{
+                //    Matrix = new MatrixDefinition()
+                //    {
+                //        Size = new Vector() { this.Parameters.ConfidenceIntervals.Count, 2 } ,
+                //        GetHeading = (dim, idx) =>
+                //        {
+                //            if (dim == 0)
+                //            {
+                //                return TextHelper.ToCell(Parameters.ConfidenceIntervals[idx]);
+                //            }
+                //            else
+                //            {
+                //                switch (idx)
+                //                {
+                //                    case(0) :
+                //                        return "Percentile";
+                //                    case(1):
+                //                        return "VaR";
                                       
-                                }
-                                return "???";
-                            }
-                        },
-                        GetCell = (v) =>
-                        {
-                            if (v[1] == 0)
-                            {
-                                return TextHelper.ToCell(ResultPercentile[v[0]]);
-                            }
-                            else
-                            {
-                                return TextHelper.ToCell(ResultVarCoVar.Results[v[0]].Item2);
-                            }
-                        }
-                    }
-                },
+                //                }
+                //                return "???";
+                //            }
+                //        },
+                //        GetCell = (v) =>
+                //        {
+                //            if (v[1] == 0)
+                //            {
+                //                return TextHelper.ToCell(ResultPercentile[v[0]]);
+                //            }
+                //            else
+                //            {
+                //                return TextHelper.ToCell(ResultVarCoVar.Results[v[0]].Item2);
+                //            }
+                //        }
+                //    }
+                //},
                 
                 
             };
