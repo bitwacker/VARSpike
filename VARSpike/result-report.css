@@ -54,3 +54,9 @@ div.cell {
     font-size: 10pt;
     border: solid 1pt #999;
 }
+
+.line {
+    white-space: pre;
+    margin: 0;
+    padding: 0;
+}

@@ -120,23 +120,23 @@ namespace VARSpike
                     {
                         Params =  new MonteCarlo.Params()
                         {
-                            Name = "t10 dt32 s100000",
+                            Name = "t10 dt32 s50000",
                             ReturnsType = ReturnType.Log,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(lr.Mean()), ExcelHelper.ToExcelPrecision(lr.StandardDeviation())),
                             InitialPrice = prices.Last(),
-                            TimeHorizon = 32,
+                            TimeHorizon = 10,
                             ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
                             // Quality
                             Quality_IntraDaySteps = 32,
-                            Quality_ScenarioCount = 100000,
+                            Quality_ScenarioCount = 5000,
                         },
                     },
                     new MonteCarloResult()
                     {
                         Params = new MonteCarlo.Params()
                         {
-                            Name = "t10 dt32 s100000",
+                            Name = "t10 dt32 s50000",
                             ReturnsType = ReturnType.Classic,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(cr.Mean()), ExcelHelper.ToExcelPrecision(cr.StandardDeviation())),
                             InitialPrice = prices.Last(),
@@ -145,7 +145,7 @@ namespace VARSpike
 
                             // Quality
                             Quality_IntraDaySteps = 32,
-                            Quality_ScenarioCount = 100000
+                            Quality_ScenarioCount = 5000
                         }
                     },
                 };

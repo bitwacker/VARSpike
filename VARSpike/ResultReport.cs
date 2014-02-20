@@ -8,6 +8,7 @@ using System.Net.Mime;
 using System.Runtime.ExceptionServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using MathNet.Numerics.LinearAlgebra.Generic.Solvers.Status;
 using MathNet.Numerics.Random;
 
@@ -174,7 +175,7 @@ namespace VARSpike
 
         public override string ToHTML()
         {
-            return string.Format("<pre>{0}</pre>", HtmlString ?? String);
+            return string.Format("<div class='line'>{0}</div>", HtmlString ?? String);
         }
     }
 
@@ -345,16 +346,22 @@ namespace VARSpike
             }
             writer.WriteLine("</tr>");
 
-            foreach (var row in GetRowSpecs())
+            var specs = GetRowSpecs().ToList();
+            int rowIdx = 0;
+            foreach (var row in specs)
             {
                 writer.WriteLine("<tr>");
 
                 // Headers
-                for (int rr = 0; rr < row.Count; rr++)
+                for (int col = 0; col < row.Count; col++)
                 {
-                    writer.Write("<th>");
-                    writer.Write(Matrix.GetHeading(rr+1, row[rr]));
-                    writer.Write("</th>");
+                    var rowSpan = GetRowSpan(specs, row, rowIdx, col);
+                    if (rowSpan > 0)
+                    {
+                        writer.Write("<th rowspan='{0}'>", rowSpan);
+                        writer.Write(Matrix.GetHeading(col + 1, row[col]));
+                        writer.Write("</th>");        
+                    }
                 }
 
                 // Data Over- Dim0
@@ -367,15 +374,36 @@ namespace VARSpike
                     writer.Write("</td>");
                 }
 
-
                 writer.WriteLine("</tr>");
+
+                rowIdx++;
             }
 
             writer.WriteLine("</table>");
             
         }
 
-      
+        private int GetRowSpan(List<Vector<int>> specs, Vector<int> row, int rowIdx, int col)
+        {
+            // Already Skipped?
+            if (rowIdx > 0)
+            {
+                if (specs[rowIdx - 1][col] == row[col]) return 0;
+                
+
+            }
+            
+            
+            // SkipCount
+            //return specs.Skip(rowIdx).Count(x => x[col] == row[col]);
+            var skip = specs.Skip(rowIdx).ToList();
+            var same = skip.TakeWhile(x => x[col] == row[col]).ToList();
+            return same.Count;                
+            
+
+
+        }
+
 
         private IEnumerable<Vector<int>> GetRowSpecs()
         {

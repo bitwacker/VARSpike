@@ -40,7 +40,7 @@ namespace VARSpike
         public void Dispose()
         {
             perf.Stop();
-            Reporter.WriteLine("[{0}] {1} execution took {2:0.000} sec. {3:0.0000} per {4}", "Timer", name, perf.Duration(1), perf.Duration(Count), Count);
+            Reporter.WriteLine("[{0}] '{1}' execution took {2:0.000} sec. {3:0.0000} per {4}", "Timer", name, perf.Duration(1), perf.Duration(Count), Count);
         }
 
 
