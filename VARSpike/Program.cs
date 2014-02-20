@@ -41,6 +41,30 @@ namespace VARSpike
                 //Reporter.Write("VaR-LogReturns", lrVAR);
 
 
+                var options2 = new MonteCarlo.Params()
+                {
+                    Name = "MonteCarlo-using-LogReturns",
+
+                    ReturnsType = ReturnType.Log,
+                    ReturnsDist = new Normal(lr.Mean(), lr.StandardDeviation()),
+                    InitialPrice = prices.Last(),
+                    TimeHorizon = 10,
+                    ConfidenceIntervals = Domain.StandardConfidenceLevels,
+
+                    // Quality
+                    Quality_IntraDaySteps = 8,
+                    Quality_ScenarioCount = 1000,
+
+                    //RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
+
+                };
+
+                var m2 = new MonteCarlo(options2);
+                m2.Compute();
+
+                Reporter.Write(m2);
+
+
                 
                 var options1 = new MonteCarlo.Params()
                 {
@@ -63,31 +87,9 @@ namespace VARSpike
                 var m1 = new MonteCarlo(options1);
                 m1.Compute();
 
-                Reporter.Write(m1);
+                //Reporter.Write(m1);
                 
 
-                var options2 = new MonteCarlo.Params()
-                {
-                    Name = "MonteCarlo-using-LogReturns",
-
-                    ReturnsType = ReturnType.Classic,
-                    ReturnsDist = new Normal(lr.Mean(), lr.StandardDeviation()),
-                    InitialPrice = prices.Last(),
-                    TimeHorizon = 10,
-                    ConfidenceIntervals = Domain.StandardConfidenceLevels,
-
-                    // Quality
-                    Quality_IntraDaySteps = 8,
-                    Quality_ScenarioCount = 1000,
-
-                    //RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
-
-                };
-
-                var m2 = new MonteCarlo(options2);
-                m2.Compute();
-
-                Reporter.Write(m2);
 
                 Reporter.Write(new HeadingResult("COMPARISON"));
 
@@ -147,6 +149,14 @@ namespace VARSpike
         public Series(IEnumerable<double> oldestToNewest) : base(oldestToNewest) {}
         public Series(IEnumerable<ISample> sample) : base(sample.OrderBy(x=>x.At).Select(x=>x.Value)){}
         public Series(int capacity): base(capacity) {}
+
+        public Normal NormalDistribution
+        {
+            get
+            {
+                return new Normal(this.Mean(), this.StandardDeviation());
+            }
+        }
 
         public override string ToString()
         {

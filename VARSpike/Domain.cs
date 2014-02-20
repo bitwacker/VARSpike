@@ -54,6 +54,10 @@ namespace VARSpike
             return result;
         }
 
+        public static double LogReturnInv(double logReturn, double price)
+        {
+            return price * Math.Exp(logReturn);
+        }
     }
 
     public class MathHelper

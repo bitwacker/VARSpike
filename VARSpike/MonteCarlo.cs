@@ -75,11 +75,12 @@ namespace VARSpike
         public Params Parameters { get; set; }
 
         // Out
-        
         public Histogram Histogram { get; set; }
 
         public List<double> ResultPercentile { get; set; }
         public ValueAtRisk ResultVarCoVar { get; set; }
+        //public ValueAtRisk ResultVarCoVarReturns { get; set; }
+        //public List<double> ResultVarCoVarReturnsPrice { get; set; }
 
         public void Compute()
         {
@@ -117,13 +118,19 @@ namespace VARSpike
             ResultPercentile = ci.Select(x => QuantileFromRankedSeries(this, x) - initialPrice).ToList();
             
             // Var-CoVar Method
-            ResultVarCoVar = new ValueAtRisk(new Normal(this.Mean(), this.StandardDeviation()), ci, initialPrice);
+            ResultVarCoVar = new ValueAtRisk(this.NormalDistribution, ci, initialPrice);
             ResultVarCoVar.Compute();
 
-         
+            //var walkReturns = Domain.LogReturnSeries(this);
+            //ResultVarCoVarReturns = new ValueAtRisk(walkReturns.NormalDistribution, ci, 0);
+            //ResultVarCoVarReturns.Compute();
+
+            //ResultVarCoVarReturnsPrice = ResultVarCoVarReturns.Results.Select(x => Domain.LogReturnInv(x.Item2, initialPrice) - initialPrice).ToList();
+
         }
 
-       
+        
+
 
         /// <summary>
         /// http://en.wikipedia.org/wiki/Percentile
@@ -143,17 +150,12 @@ namespace VARSpike
         private double GenerateStep(int s, int t, int dt)
         {
             var deltaT = 1 / (double)intraDaySteps;
-            var e = stdNormal.InverseCumulativeDistribution(GetRandom(s, t, dt));  
-            // var e = stdNormal.Sample();
-            return returnsDist.Mean * deltaT + returnsDist.StdDev * e * Math.Sqrt(deltaT);
+            var rnd = GetRandom(s, t, dt);
+            var e = stdNormal.InverseCumulativeDistribution(rnd);  
+            
+            var result = returnsDist.Mean * deltaT + returnsDist.StdDev * e * Math.Sqrt(deltaT);
 
-
-            // M, S, dt=1, p=RANDOM
-
-            // m = normal.Mean
-            // s = normal.StdDev
-            // p = inside stdNormal.Sample()
-            // XLS NORM.INV(p, m, s) => m + s*NORM.INV(0,1)*p
+            return result;
         }
         
         private double GetRandom(int s, int t, int dt)
@@ -183,11 +185,27 @@ namespace VARSpike
             var resultMatrix = MatrixDefinitionBySet2D<double, string>.Define(
                 (ci, s) =>
                 {
-                    if (s == "VaR") return ResultVarCoVar.Results[Parameters.ConfidenceIntervals.IndexOf(ci)].Item2.ToString();
-                    return ResultPercentile[Parameters.ConfidenceIntervals.IndexOf(ci)].ToString();
+                    switch (s)
+                    {
+                        case("Percentile") :
+                            return ResultPercentile[Parameters.ConfidenceIntervals.IndexOf(ci)].ToString();
+
+                        case ("VaR-OnPrice"):
+                            return ResultVarCoVar.Results[Parameters.ConfidenceIntervals.IndexOf(ci)].Item2.ToString();
+
+                        //case ("VaR-Returns"):
+                        //    return ResultVarCoVarReturns.Results[Parameters.ConfidenceIntervals.IndexOf(ci)].Item2.ToString();
+
+                        //case ("VaR-ReturnsPrice"):
+                        //    return ResultVarCoVarReturnsPrice[Parameters.ConfidenceIntervals.IndexOf(ci)].ToString();
+
+                        default:
+                            throw new Exception();
+                    }
+                    
                 },
                 Parameters.ConfidenceIntervals,
-                new String[] { "Percentile", "VaR" }
+                new String[] { "Percentile", "VaR-OnPrice" }
                 );
 
             return new CompountResult()
@@ -203,51 +221,14 @@ namespace VARSpike
                    
                 },
                 new HeadingResult("Scenarios (ordered random-walk) results"),
-                new TableResult(this),
+                base.ToReport(),
                 ReportHelper.ToReport(Histogram),
                 new VerboseResult(WriteVerbose),
                 new HeadingResult("Results"),
                 new MatrixResult()
                 {
                     Matrix = resultMatrix
-                }
-                //new MatrixResult()
-                //{
-                //    Matrix = new MatrixDefinition()
-                //    {
-                //        Size = new Vector() { this.Parameters.ConfidenceIntervals.Count, 2 } ,
-                //        GetHeading = (dim, idx) =>
-                //        {
-                //            if (dim == 0)
-                //            {
-                //                return TextHelper.ToCell(Parameters.ConfidenceIntervals[idx]);
-                //            }
-                //            else
-                //            {
-                //                switch (idx)
-                //                {
-                //                    case(0) :
-                //                        return "Percentile";
-                //                    case(1):
-                //                        return "VaR";
-                                      
-                //                }
-                //                return "???";
-                //            }
-                //        },
-                //        GetCell = (v) =>
-                //        {
-                //            if (v[1] == 0)
-                //            {
-                //                return TextHelper.ToCell(ResultPercentile[v[0]]);
-                //            }
-                //            else
-                //            {
-                //                return TextHelper.ToCell(ResultVarCoVar.Results[v[0]].Item2);
-                //            }
-                //        }
-                //    }
-                //},
+                },
                 
                 
             };
