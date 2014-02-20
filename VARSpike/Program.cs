@@ -46,7 +46,7 @@ namespace VARSpike
                 {
                     var options = new MonteCarlo.Params()
                     {
-                        Name = "MonteCarlo using ClassicReturns",
+                        Name = "MonteCarlo-using-ClassicReturns",
 
                         ReturnsType = ReturnType.Classic,
                         ReturnsDist = new Normal(cr.Mean(), cr.StandardDeviation()),
@@ -56,7 +56,10 @@ namespace VARSpike
 
                         // Quality
                         Quality_IntraDaySteps = 8,
-                        Quality_ScenarioCount = 10000
+                        Quality_ScenarioCount = 1000,
+
+                        RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
+                        
                     };
                       
                     var m = new MonteCarlo(options);

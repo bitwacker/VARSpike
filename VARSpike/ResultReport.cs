@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Mime;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using MathNet.Numerics.Random;
 
 namespace VARSpike
 {
@@ -19,19 +20,19 @@ namespace VARSpike
     {
         static Reporter()
         {
-            // Default
-            ImplementationConsole = x => Console.WriteLine(x.ToString());
+            ImplementationConsole = Console.Out;
         }
 
-        public static Action<IResult> ImplementationConsole { get; set; }
-        public static Action<IResult> ImplementationFileText { get; set; }
-        public static Action<IResult> ImplementationFileHTML { get; set; }
+        public static TextWriter ImplementationConsole { get; set; }
+        public static TextWriter ImplementationFileText { get; set; }
+        public static TextWriter ImplementationFileHTML { get; set; }
+
 
         public static void Write(IResult result)
         {
-            if (ImplementationConsole != null) ImplementationConsole(result);
-            if (ImplementationFileText != null) ImplementationFileText(result);
-            if (ImplementationFileHTML != null) ImplementationFileHTML(result);
+            if (ImplementationConsole != null) result.Output(ReportFormat.Console, ImplementationConsole);
+            if (ImplementationFileText != null) result.Output(ReportFormat.Text, ImplementationFileText);
+            if (ImplementationFileHTML != null) result.Output(ReportFormat.Html, ImplementationFileHTML);
         }
 
         public static void Write(IReporter reporter)
@@ -66,25 +67,25 @@ namespace VARSpike
         private class HtmlOut : IDisposable
         {
             private StreamWriter fileWriter;
-            private Action<IResult> old;
+            
 
             public HtmlOut(string fileName)
             {
-                old = Reporter.ImplementationFileHTML;
-                Reporter.ImplementationFileHTML = this.ImplementationFileHTML;
-
                 fileWriter = new StreamWriter(File.OpenWrite(fileName));
+                Reporter.ImplementationFileHTML = fileWriter;
+                
                 WriteHeader();
             }
 
-            private void ImplementationFileHTML(IResult obj)
-            {
-                fileWriter.WriteLine(obj.ToHTML()
-                    .Replace("μ", "&#956;")
-                    .Replace("σ", "&#963;")
-                    .Replace("⇔", "&#8660;")
-                    );
-            }
+            //private void ImplementationFileHTML(IResult obj)
+            //{
+            //    fileWriter.WriteLine(obj.ToHTML()
+            //        .Replace("μ", "&#956;")
+            //        .Replace("σ", "&#963;")
+            //        .Replace("⇔", "&#8660;")
+
+            //        );
+            //}
 
             private void WriteHeader()
             {
@@ -101,7 +102,8 @@ namespace VARSpike
                 fileWriter.WriteLine("</html>");
 
                 fileWriter.Dispose();
-                Reporter.ImplementationFileHTML = old;
+                Reporter.ImplementationFileHTML = null;
+
             }
         }
 
@@ -118,10 +120,27 @@ namespace VARSpike
 
     public interface  IResult
     {
-        string ToHTML();
+        void Output(ReportFormat format, TextWriter writer);
     }
 
-    public class StringResult : IResult
+    public abstract class CommonResult : IResult
+    {
+        public void Output(ReportFormat format, TextWriter writer)
+        {
+            switch (format)
+            {
+                case(ReportFormat.Console):
+                case (ReportFormat.Text): writer.Write(ToString());
+                    break;
+                case (ReportFormat.Html): writer.Write(ToHTML());
+                    break;
+            }
+        }
+
+        public abstract string ToHTML();
+    }
+
+    public class StringResult : CommonResult
     {
         public StringResult()
         {
@@ -144,7 +163,8 @@ namespace VARSpike
             return String;
         }
 
-        public string ToHTML()
+
+        public override string ToHTML()
         {
             return string.Format("<pre>{0}</pre>", String);
         }
@@ -182,9 +202,20 @@ namespace VARSpike
             sb.Append("</ul>");
             return sb.ToString();
         }
+        public void Output(ReportFormat format, TextWriter writer)
+        {
+            switch (format)
+            {
+                case (ReportFormat.Console):
+                case (ReportFormat.Text): writer.Write(ToString());
+                    break;
+                case (ReportFormat.Html): writer.Write(ToHTML());
+                    break;
+            }
+        }
     }
 
-    public class TableResult : IResult
+    public class TableResult : CommonResult
     {
         private IEnumerable source;
 
@@ -200,7 +231,7 @@ namespace VARSpike
             return TextHelper.ToTable(source) + Environment.NewLine;
         }
 
-        public string ToHTML()
+        public override string ToHTML()
         {
             return ToTable(source);
         }
@@ -236,7 +267,7 @@ namespace VARSpike
         }
     }
 
-    public class HeadingResult : IResult
+    public class HeadingResult : CommonResult
     {
         private string heading;
 
@@ -250,7 +281,7 @@ namespace VARSpike
             return heading + Environment.NewLine + "====================" + Environment.NewLine;
         }
 
-        public string ToHTML()
+        public override string ToHTML()
         {
             return string.Format("<h3>{0}</h3>", heading);
         }
@@ -258,26 +289,31 @@ namespace VARSpike
 
     public class CompountResult : List<IResult>, IResult
     {
-        public override string ToString()
+        public void Output(ReportFormat format, TextWriter writer)
         {
-            var sb = new StringBuilder();
             foreach (var item in this)
             {
-                sb.Append(item.ToString());
-                
+                item.Output(format, writer);
             }
-            return sb.ToString();
+        }
+    }
+
+
+    public class VerboseResult :  IResult
+    {
+        private readonly Action<ReportFormat, TextWriter> writer;
+
+        public VerboseResult(Action<ReportFormat, TextWriter> writer)
+        {
+            this.writer = writer;
         }
 
-        public string ToHTML()
+        public void Output(ReportFormat format, TextWriter output)
         {
-            var sb = new StringBuilder();
-            foreach (var item in this)
+            if (format != ReportFormat.Console)
             {
-                sb.Append(item.ToHTML());
-
+                this.writer(format, output);
             }
-            return sb.ToString();
         }
     }
 }

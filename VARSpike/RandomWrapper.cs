@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace VARSpike
 {
@@ -18,8 +19,20 @@ namespace VARSpike
         }
 
         public bool Record { get; set; }
-        public bool UseFixed { get; set; }
+        public bool PlayBack { get; set; }
         public Random Underlying { get; set; }
+
+
+        public RandomWrapper InitRecord(int seed, int guessSize)
+        {
+            Underlying = new Random(seed);
+            PlayBack = true;
+            Record = true;
+            names = new List<string>(guessSize);
+            sequence = new List<double>(guessSize);
+
+            return this;
+        }
         
         
         private List<double> sequence;
@@ -28,7 +41,7 @@ namespace VARSpike
 
         public double NextDouble()
         {
-            if (UseFixed)
+            if (PlayBack)
             {
                 if (Record)
                 {
@@ -44,12 +57,12 @@ namespace VARSpike
 
         public double NextDouble(string name)
         {
-            if (UseFixed)
+            if (PlayBack)
             {
                 if (Record)
                 {
-
                     var next = Underlying.NextDouble();
+                    count++;
                     sequence.Add(next);
                     if (names != null) names.Add(name);
                     return next;
@@ -60,6 +73,18 @@ namespace VARSpike
 
             return Underlying.NextDouble();
 
+        }
+
+        public void SaveFixed(string filename)
+        {
+            using (var fs = new StreamWriter(filename, false))
+            {
+                for (int cc = 0; cc < sequence.Count; cc++)
+                {
+                    fs.WriteLine("{0}, {1}, {2}", cc, names[cc], sequence[cc]);
+                }    
+            }
+            
         }
     }
 }

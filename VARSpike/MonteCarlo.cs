@@ -107,9 +107,7 @@ namespace VARSpike
 
         public void Compute()
         {
-            // Capture Randoms?
-            RandomsList = new List<Tuple<string, double>>();
-
+         
             this.Clear();
             for (int s = 0; s < scenarioCount; s++)
             {
@@ -146,16 +144,7 @@ namespace VARSpike
             ResultVarCoVar = new ValueAtRisk(new Normal(this.Mean(), this.StandardDeviation()), ci, initialPrice);
             ResultVarCoVar.Compute();
 
-            if (RandomsList != null)
-            {
-                using (var fw = new StreamWriter("randoms.csv", false))
-                {
-                    foreach (var pair in RandomsList)
-                    {
-                        fw.WriteLine("{0}\t,{1}",  pair.Item1, pair.Item2);
-                    }
-                }
-            }
+         
         }
 
        
@@ -190,17 +179,17 @@ namespace VARSpike
             // p = inside stdNormal.Sample()
             // XLS NORM.INV(p, m, s) => m + s*NORM.INV(0,1)*p
         }
-
-        private List<Tuple<string, double>> RandomsList; 
-
+        
         private double GetRandom(int s, int t, int dt)
         {
-            var p = random.NextDouble();
-            if (RandomsList != null)
+            if (random.Record)
             {
-                RandomsList.Add(new Tuple<string, double>(string.Format("s{0}t{1}dt{2}", s, t, dt), p));
+                return random.NextDouble(string.Format("s{0}t{1}dt{2}", s, t, dt));
             }
-            return p;
+            else
+            {
+                return random.NextDouble();
+            }
         }
 
         public override string ToString()
@@ -228,8 +217,23 @@ namespace VARSpike
                 new HeadingResult("VaR-Ranked"),
                 new TableResult(ci),
                 new TableResult(ResultRanked),
-                //new TableResult(this)
+                new VerboseResult(WriteVerbose)
             };
+        }
+
+        private void WriteVerbose(ReportFormat fmt, TextWriter outp)
+        {
+            if (random.PlayBack)
+            {
+                var filename = string.Format("{0}-random.csv", this.Parameters.Name);
+                outp.WriteLine("[VERBOSE] file: ./{0}", filename);
+
+                if (random.Record)
+                {
+                    random.SaveFixed(filename);
+                }
+            }
+            
         }
     }
 }
