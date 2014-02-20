@@ -42,34 +42,31 @@ namespace VARSpike
                 Reporter.Write("VaR-LogReturns", lrVAR);
                 
 
-                //var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 100, 1, .95);
-                //m.Compute();
-                //Reporter.Write("MonteCarlo", m);
-
-                //m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 10000, 32, .95);
-                //m.Compute();
-                //Reporter.Write("MonteCarlo", m);
-
                 using (new CodeTimerConsole("MonteCarlo-CR"))
                 {
-                    var m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 10, 100000, 8, Domain.StandardConfidenceLevels, ReturnType.Classic);
+                    var options = new MonteCarlo.Params()
+                    {
+                        Name = "MonteCarlo using ClassicReturns",
+
+                        ReturnsType = ReturnType.Classic,
+                        ReturnsDist = new Normal(cr.Mean(), cr.StandardDeviation()),
+                        InitialPrice = prices.Last(),
+                        TimeHorizon = 10,
+                        ConfidenceIntervals = Domain.StandardConfidenceLevels,
+
+                        // Quality
+                        Quality_IntraDaySteps = 8,
+                        Quality_ScenarioCount = 10000
+                    };
+                      
+                    var m = new MonteCarlo(options);
                     m.Compute();
-                    Reporter.Write("MonteCarlo", m);    
+
+                    Reporter.Write(m);    
                 }
 
-                using (new CodeTimerConsole("MonteCarlo-LR"))
-                {
-                    var m = new MonteCarlo(new Normal(lr.Mean(), lr.StandardDeviation()), prices.Last(), 10, 100000, 8, Domain.StandardConfidenceLevels, ReturnType.Log);
-                    m.Compute();
-                    Reporter.Write("MonteCarlo", m);
-                }
-                
                 
 
-
-                //m = new MonteCarlo(new Normal(cr.Mean(), cr.StandardDeviation()), prices.Last(), 60, 50000, 8, .95);
-                //m.Compute();
-                //Reporter.Write("MonteCarlo", m);    
             }
         }
 

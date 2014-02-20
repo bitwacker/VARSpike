@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,35 +34,69 @@ namespace VARSpike
         }
     }
 
-    public enum ReturnType
+
+    public class CalculationParams
     {
-        Classic,
-        Log
+        public string Name { get; set; }
+        public string Description { get; set; }
     }
+
+    
 
     public class MonteCarlo : Series, IReporter
     {
-        public MonteCarlo(Normal returnsDist, double initialPrice, int timeHorizon, int scenarioCount, int intraDaySteps, List<double> ci, ReturnType returnType)
+        public class Params : CalculationParams
         {
-            this.returnsDist = returnsDist;
-            this.initialPrice = initialPrice;
-            this.timeHorizon = timeHorizon;
-            this.scenarioCount = scenarioCount;
-            this.intraDaySteps = intraDaySteps;
-            this.ci = ci;
-            this.returnType = returnType;
+            public Params()
+            {
+                RandomWrapper = new RandomWrapper();
+            }
+           
+
+            public Normal ReturnsDist { get;  set; }
+
+            public double InitialPrice { get;  set; }
+
+            public int TimeHorizon { get;  set; }
+
+            public int Quality_ScenarioCount { get;  set; }
+
+            public int Quality_IntraDaySteps { get;  set; }
+
+            public List<double> ConfidenceIntervals { get;  set; }
+
+            public ReturnType ReturnsType { get;  set; }
+
+            public RandomWrapper RandomWrapper { get;  set; }
+            
         }
+
+        public MonteCarlo(Params @params)
+        {
+            this.returnsDist = @params.ReturnsDist;
+            this.initialPrice = @params.InitialPrice;
+            this.timeHorizon = @params.TimeHorizon;
+            this.scenarioCount = @params.Quality_ScenarioCount;
+            this.intraDaySteps = @params.Quality_IntraDaySteps;
+            this.ci = @params.ConfidenceIntervals;
+            this.returnType = @params.ReturnsType;
+            this.random = @params.RandomWrapper;
+            Parameters = @params;
+        }
+
+        
 
         // Inputs
         private static readonly Normal stdNormal = new Normal(0,1);
         private readonly Normal returnsDist;
-        private readonly Random random = new Random(1);
+        private readonly RandomWrapper random;
         private readonly double initialPrice;
         private readonly int timeHorizon;
         private readonly int scenarioCount;
         private readonly int intraDaySteps;
         private readonly List<double> ci;
         private readonly ReturnType returnType;
+        public Params Parameters { get; set; }
 
         // Out
         
@@ -72,6 +107,9 @@ namespace VARSpike
 
         public void Compute()
         {
+            // Capture Randoms?
+            RandomsList = new List<Tuple<string, double>>();
+
             this.Clear();
             for (int s = 0; s < scenarioCount; s++)
             {
@@ -107,6 +145,17 @@ namespace VARSpike
             // Var-CoVar Method
             ResultVarCoVar = new ValueAtRisk(new Normal(this.Mean(), this.StandardDeviation()), ci, initialPrice);
             ResultVarCoVar.Compute();
+
+            if (RandomsList != null)
+            {
+                using (var fw = new StreamWriter("randoms.csv", false))
+                {
+                    foreach (var pair in RandomsList)
+                    {
+                        fw.WriteLine("{0}\t,{1}",  pair.Item1, pair.Item2);
+                    }
+                }
+            }
         }
 
        
@@ -119,15 +168,17 @@ namespace VARSpike
             //var q = Statistics.QuantileCustom(seriesSorted, ci, QuantileDefinition.Excel);
 
             return Statistics.Percentile(seriesSorted, (int) ((1-ci) * 100));
-            double count = seriesSorted.Count();
-            var indx = (int)Math.Floor(count * (1-ci));
-            return seriesSorted.Skip(indx).FirstOrDefault();
+
+            // A HACK Method:
+            //double count = seriesSorted.Count();
+            //var indx = (int)Math.Floor(count * (1-ci));
+            //return seriesSorted.Skip(indx).FirstOrDefault();
         }
 
         private double GenerateStep(int s, int t, int dt)
         {
             var deltaT = 1 / (double)intraDaySteps;
-            var e = stdNormal.InverseCumulativeDistribution(random.NextDouble());  
+            var e = stdNormal.InverseCumulativeDistribution(GetRandom(s, t, dt));  
             // var e = stdNormal.Sample();
             return returnsDist.Mean * deltaT + returnsDist.StdDev * e * Math.Sqrt(deltaT);
 
@@ -140,6 +191,18 @@ namespace VARSpike
             // XLS NORM.INV(p, m, s) => m + s*NORM.INV(0,1)*p
         }
 
+        private List<Tuple<string, double>> RandomsList; 
+
+        private double GetRandom(int s, int t, int dt)
+        {
+            var p = random.NextDouble();
+            if (RandomsList != null)
+            {
+                RandomsList.Add(new Tuple<string, double>(string.Format("s{0}t{1}dt{2}", s, t, dt), p));
+            }
+            return p;
+        }
+
         public override string ToString()
         {
             return ToReport().ToString();
@@ -149,6 +212,7 @@ namespace VARSpike
         {
             return new CompountResult()
             {
+                new HeadingResult(Parameters.Name ?? "MonteCarlo"),
                 new PropertyListResult()
                 {
                     {"TimeHorizon", timeHorizon},

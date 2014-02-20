@@ -34,6 +34,11 @@ namespace VARSpike
             if (ImplementationFileHTML != null) ImplementationFileHTML(result);
         }
 
+        public static void Write(IReporter reporter)
+        {
+            Write(reporter.ToReport());
+        }
+
         public static void Write(string heading, params IResult[] args)
         {
             Write(new HeadingResult(heading));
