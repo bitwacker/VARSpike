@@ -74,7 +74,11 @@ namespace VARSpike
 
             private void ImplementationFileHTML(IResult obj)
             {
-                fileWriter.WriteLine(obj.ToHTML());
+                fileWriter.WriteLine(obj.ToHTML()
+                    .Replace("μ", "&#956;")
+                    .Replace("σ", "&#963;")
+                    .Replace("⇔", "&#8660;")
+                    );
             }
 
             private void WriteHeader()
@@ -137,7 +141,7 @@ namespace VARSpike
 
         public string ToHTML()
         {
-            return string.Format("<span>{0}</span>", String);
+            return string.Format("<pre>{0}</pre>", String);
         }
     }
 

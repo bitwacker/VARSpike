@@ -25,7 +25,7 @@ namespace VARSpike
             for (int cc = 0; cc < hist.BucketCount; cc++)
             {
                 var b = hist[cc];
-                sb.AppendFormat("{0,5}↔{1,5} | {2,5} {3}", TextHelper.ToCell(b.LowerBound), TextHelper.ToCell(b.UpperBound), b.Count, TextHelper.BarChartLine(b.Count, max, 40));
+                sb.AppendFormat("{0,5} ⇔ {1,5} | {2,5} {3}", TextHelper.ToCell(b.LowerBound), TextHelper.ToCell(b.UpperBound), b.Count, TextHelper.BarChartLine(b.Count, max, 40));
                 sb.AppendLine();
             }
             return new StringResult(sb);
