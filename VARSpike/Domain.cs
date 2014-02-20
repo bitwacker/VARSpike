@@ -54,11 +54,6 @@ namespace VARSpike
             return result;
         }
 
-        public static class Symbol
-        {
-            public const string Mu = "μ";
-            public const string Sigma = "σ";
-        }
     }
 
     public class MathHelper

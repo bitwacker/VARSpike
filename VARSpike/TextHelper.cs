@@ -9,6 +9,19 @@ namespace VARSpike
 {
     public static class TextHelper
     {
+
+        public static class Symbol
+        {
+
+            public const string Mu = "μ"; public const string Mu_Html = "&#956;";
+
+            public const string Sigma = "σ"; public const string Sigma_Html = "&#963;";
+
+            public const string ArrowDouble = "⇔"; public const string ArrowDouble_Html = "&#8660;";
+
+
+        }
+
         public static string ToTable(IEnumerable<double> series)
         {
             var sb = new StringBuilder();
@@ -60,12 +73,22 @@ namespace VARSpike
             return d.ToString("0.000000").PadLeft(11);
         }
 
-        public  static string ToCell(object d)
+        public  static string ToCell(object d, ReportFormat fmt = ReportFormat.Console)
         {
+            
+
             var normal = d as Normal;
             if (normal != null)
             {
-                return string.Format("Norm[{0}={1}, {2}={3}]", Domain.Symbol.Mu, ToCell(normal.Mean), Domain.Symbol.Sigma, ToCell(normal.StdDev));
+                if (fmt == ReportFormat.Html)
+                {
+                    return string.Format("Norm[{0}={1}, {2}={3}]", Symbol.Mu_Html, ToCell(normal.Mean), Symbol.Sigma_Html, ToCell(normal.StdDev));
+                }
+                else
+                {
+                    return string.Format("Norm[{0}={1}, {2}={3}]", Symbol.Mu, ToCell(normal.Mean), Symbol.Sigma, ToCell(normal.StdDev));    
+                }
+                
             }
             if (d is double)
             {
@@ -88,7 +111,7 @@ namespace VARSpike
         public static object Format(string format, params object[] args)
         {
             if (format == null) return null;
-            var toCell = args.Select(ToCell).ToArray();
+            var toCell = args.Select(x=>ToCell(x)).ToArray();
             return string.Format(format, toCell);
         }
     }

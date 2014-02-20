@@ -27,8 +27,6 @@ namespace VARSpike
 
                 Reporter.Write("Prices", prices);
 
-
-
                 var cr = Domain.ClassicReturnSeries(prices);
                 Reporter.Write("ClassicReturns", cr);
                 var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels, 0) ;
@@ -58,7 +56,7 @@ namespace VARSpike
                         Quality_IntraDaySteps = 8,
                         Quality_ScenarioCount = 1000,
 
-                        RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
+                        // RandomWrapper = new RandomWrapper().InitRecord(1, 10*8*1000)
                         
                     };
                       

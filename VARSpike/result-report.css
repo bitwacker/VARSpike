@@ -6,23 +6,29 @@
 
 ul {
     list-style-type: none;
+    margin-left: 10px;
+    padding: 0;
 }
 
 li {
     border-bottom: 1px solid #eee;
+    margin-left: 0;
 }
 
 div.head {
     display: inline-block;
-    min-width: 50px;
+    min-width: 150px;
     font-weight: bold;
     text-align: right;
+    padding-right: 3px;
+    
+    border-right:  1px solid #eee;
 }
 
 div.cell {
     display: inline-block;
     min-width: 50px;
-    white-space: pre;
+    
 }
 
 

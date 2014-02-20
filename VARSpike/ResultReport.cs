@@ -71,21 +71,12 @@ namespace VARSpike
 
             public HtmlOut(string fileName)
             {
-                fileWriter = new StreamWriter(File.OpenWrite(fileName));
+                fileWriter = new StreamWriter(fileName, false);
                 Reporter.ImplementationFileHTML = fileWriter;
                 
                 WriteHeader();
             }
 
-            //private void ImplementationFileHTML(IResult obj)
-            //{
-            //    fileWriter.WriteLine(obj.ToHTML()
-            //        .Replace("μ", "&#956;")
-            //        .Replace("σ", "&#963;")
-            //        .Replace("⇔", "&#8660;")
-
-            //        );
-            //}
 
             private void WriteHeader()
             {
@@ -98,11 +89,14 @@ namespace VARSpike
 
             public void Dispose()
             {
+                Reporter.ImplementationFileHTML = null;
+
                 fileWriter.WriteLine("</body>");
                 fileWriter.WriteLine("</html>");
+                fileWriter.Flush();
 
                 fileWriter.Dispose();
-                Reporter.ImplementationFileHTML = null;
+                
 
             }
         }
@@ -151,12 +145,20 @@ namespace VARSpike
             String = s;
         }
 
+        public StringResult(string s, string htmlString)
+        {
+            String = s;
+            HtmlString = htmlString;
+        }
+
         public StringResult(StringBuilder sb)
         {
             String = sb.ToString();
         }
 
         public string String { get; set; }
+
+        public string HtmlString { get; set; }
 
         public override string ToString()
         {
@@ -166,7 +168,7 @@ namespace VARSpike
 
         public override string ToHTML()
         {
-            return string.Format("<pre>{0}</pre>", String);
+            return string.Format("<pre>{0}</pre>", HtmlString ?? String);
         }
     }
 
@@ -179,37 +181,27 @@ namespace VARSpike
             return this;
         }
 
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            foreach (var item in this)
-            {
-                sb.AppendFormat("{0,15}: {1} ",item.Item1, TextHelper.ToCell(item.Item2));
-                sb.AppendLine();
-            }
-            return sb.ToString();
-        }
 
-        public string ToHTML()
-        {
-            var sb = new StringBuilder();
-            sb.Append("<ul>");
-            foreach (var item in this)
-            {
-                sb.AppendFormat("<li><div class='head'>{0,15}</div> <div class='cell'>{1}</div></li> ", item.Item1, TextHelper.ToCell(item.Item2));
-                sb.AppendLine();
-            }
-            sb.Append("</ul>");
-            return sb.ToString();
-        }
         public void Output(ReportFormat format, TextWriter writer)
         {
             switch (format)
             {
                 case (ReportFormat.Console):
-                case (ReportFormat.Text): writer.Write(ToString());
+                case (ReportFormat.Text): 
+            
+                    foreach (var item in this)
+                    {
+                        writer.WriteLine("{0,15}: {1} ", item.Item1, TextHelper.ToCell(item.Item2, format));
+                    }
+            
                     break;
-                case (ReportFormat.Html): writer.Write(ToHTML());
+                case (ReportFormat.Html):
+                    writer.WriteLine("<ul>");
+                    foreach (var item in this)
+                    {
+                        writer.WriteLine("<li><div class='head'>{0,15}</div> <div class='cell'>{1}</div></li> ", item.Item1, TextHelper.ToCell(item.Item2, format));
+                    }
+                    writer.WriteLine("</ul>");
                     break;
             }
         }
