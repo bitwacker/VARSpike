@@ -7,6 +7,12 @@ using NUnit.Framework;
 
 namespace VARSpike
 {
+    public class Interpretation
+    {
+        public string Name { get; set; }
+        public Func<double, object> Transform { get; set; }
+    }
+
     public class ValueAtRisk : IReporter
     {
         public ValueAtRisk(Normal distribution, List<double> confidenceIntervals)
@@ -25,15 +31,14 @@ namespace VARSpike
 
         // Input
         public double DeltaTime { get; set; }
-        public Func<double, object> Interpret { get; set; } 
+        public List<Interpretation> Interpretations { get; set; } 
         
         public Normal Distribution { get; private set; }
         public List<double> ConfidenceIntervals { get; private set; }
 
         // Output
         public List<Tuple<double, double>> Results { get; private set; }
-        public string InterpretText { get; set; }
-
+        
 
         public void Compute()
         {
@@ -53,6 +58,12 @@ namespace VARSpike
 
         public IResult ToReport()
         {
+            var resultRows = new List<string>();
+            resultRows.Add("VaR");
+            if (Interpretations != null)
+            {
+                Interpretations.ForEach(c=>resultRows.Add(c.Name));
+            }
             return new CompountResult()
             {
                 new PropertyListResult()
@@ -64,11 +75,17 @@ namespace VARSpike
                     (ci, r) =>
                     {
                         if (r == "VaR") return TextHelper.ToCell(Results[ConfidenceIntervals.IndexOf(ci)].Item2);
-                        if (Interpret == null) return "N/A";
-                        return TextHelper.ToCell(Interpret(Results[ConfidenceIntervals.IndexOf(ci)].Item2));
+
+                        var match = Interpretations.Find(x => x.Name == r);
+                        if (match != null)
+                        {
+                            return TextHelper.ToCell(match.Transform(Results[ConfidenceIntervals.IndexOf(ci)].Item2));    
+                        }
+
+                        return "N/A";
                     },
                     ConfidenceIntervals,
-                    new string[] {"VaR", InterpretText ?? "VaR Qualified"}
+                    resultRows
                     ))
             };
         }

@@ -40,17 +40,45 @@ namespace VARSpike
 
                 var cr = Domain.ClassicReturnSeries(prices);
                 Reporter.Write("ClassicReturns", cr);
-                var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels);
-                crVAR.Interpret = (var) => Domain.ClassicReturnInv(var, lastPrice) - lastPrice;
-                crVAR.InterpretText = "VaR delta(Price)";
+                var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels)
+                {
+                    Interpretations = new List<Interpretation>()
+                    {
+                        new Interpretation()
+                        {
+                            Name = "VaR Price",
+                            Transform = (var) => Domain.ClassicReturnInv(var, lastPrice)
+                        },
+                        new Interpretation()
+                        {
+                            Name = "VaR delta(Price)",
+                            Transform = (var) => Domain.ClassicReturnInv(var, lastPrice) - lastPrice
+                        }
+                    }
+                };
+                
+              
                 crVAR.Compute();
                 Reporter.Write("VaR-ClassicReturns", crVAR);
 
                 var lr = Domain.LogReturnSeries(prices);
                 Reporter.Write("LogReturns", lr);
-                var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels);
-                lrVAR.Interpret = (var) => Domain.LogReturnInv(var, lastPrice) - lastPrice;
-                lrVAR.InterpretText = "VaR delta(Price)";
+                var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels)
+                {
+                    Interpretations = new List<Interpretation>()
+                    {
+                        new Interpretation()
+                        {
+                            Name = "VaR Price",
+                            Transform =(var) => Domain.LogReturnInv(var, lastPrice)
+                        },
+                        new Interpretation()
+                        {
+                            Name = "VaR delta(Price)",
+                            Transform =(var) => Domain.LogReturnInv(var, lastPrice) - lastPrice
+                        }
+                    }
+                };
                 lrVAR.Compute();
                 Reporter.Write("VaR-LogReturns", lrVAR);
 
@@ -255,10 +283,23 @@ namespace VARSpike
                     
                     )));
 
-                
-                var simpleVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels, commonTimeHorizon);
-                simpleVAR.Interpret = (var) => Domain.LogReturnInv(var, lastPrice) - lastPrice;
-                simpleVAR.InterpretText = "Var delta(Price)";
+
+                var simpleVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels, commonTimeHorizon)
+                {
+                    Interpretations = new List<Interpretation>()
+                    {
+                        new Interpretation()
+                        {
+                            Name = "VaR Price",
+                            Transform =(var) => Domain.LogReturnInv(var, lastPrice)
+                        },
+                        new Interpretation()
+                        {
+                            Name = "VaR delta(Price)",
+                            Transform =(var) => Domain.LogReturnInv(var, lastPrice) - lastPrice
+                        }
+                    }
+                };
                 simpleVAR.Compute();
                 Reporter.Write("Simple VaR using LogReturns", simpleVAR);
             }
@@ -312,7 +353,7 @@ namespace VARSpike
                     {"Size", Count},
                     {"Mean",  Statistics.Mean(this)},
                     {"StdDev", Statistics.StandardDeviation(this)},
-                    {"Min/Med/Max", TextHelper.Format("{0}/{1}/{2}", Statistics.Minimum(this), Statistics.Median(this), Statistics.Maximum(this))}
+                    {"Min/Med/Max", TextHelper.Format("{0} / {1} / {2}", Statistics.Minimum(this), Statistics.Median(this), Statistics.Maximum(this))}
                 },
                 new TableResult(this)
             };
