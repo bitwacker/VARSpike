@@ -17,6 +17,15 @@ namespace VARSpike
         }
 
         [Test]
+        public void ExcelPrecision()
+        {
+            //   12345678901234567
+            // 0.248668584157093
+            // 0.24866858415709278
+            Assert.AreEqual(0.248668584157093, ExcelHelper.ToExcelPrecision(0.24866858415709278));
+        }
+
+        [Test]
         public void MatrixTests()
         {
             var set = new List<int>()

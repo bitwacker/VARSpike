@@ -64,7 +64,8 @@ namespace VARSpike
     {
         public static double RoundDecimal(double num, int decimalPlaces)
         {
-            return Math.Round(num * Math.Pow(10, decimalPlaces)) / Math.Pow(10, decimalPlaces);
+            return Math.Round(num, decimalPlaces);
+            //return Math.Round(num * Math.Pow(10, decimalPlaces)) / Math.Pow(10, decimalPlaces);
         }
     }
 }

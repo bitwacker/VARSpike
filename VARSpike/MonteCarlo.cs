@@ -17,15 +17,31 @@ namespace VARSpike
         public string Description { get; set; }
     }
 
+    public class ExcelHelper
+    {
+        public static double ToExcelPrecision(double d)
+        {
+            return MathHelper.RoundDecimal(d, 15);
+        }
+    }
+
+    public enum VaRMethod
+    {
+        Percentile,
+        Normal
+    }
     
 
     public class MonteCarlo : Series, IReporter
     {
+        
+
         public class Params : CalculationParams
         {
             public Params()
             {
                 RandomWrapper = new RandomWrapper();
+                UseExcel = true;
             }
            
 
@@ -44,6 +60,8 @@ namespace VARSpike
             public ReturnType ReturnsType { get;  set; }
 
             public RandomWrapper RandomWrapper { get;  set; }
+
+            public bool UseExcel { get; set; }
             
         }
 
@@ -150,10 +168,10 @@ namespace VARSpike
         private double GenerateStep(int s, int t, int dt)
         {
             var deltaT = 1 / (double)intraDaySteps;
-            var rnd = GetRandom(s, t, dt);
-            var e = stdNormal.InverseCumulativeDistribution(rnd);  
+            var rnd = ExcelHelper.ToExcelPrecision(GetRandom(s, t, dt));
+            var e = ExcelHelper.ToExcelPrecision(stdNormal.InverseCumulativeDistribution(rnd));  
             
-            var result = returnsDist.Mean * deltaT + returnsDist.StdDev * e * Math.Sqrt(deltaT);
+            var result = ExcelHelper.ToExcelPrecision(returnsDist.Mean * deltaT + returnsDist.StdDev * e * Math.Sqrt(deltaT));
 
             return result;
         }
@@ -177,11 +195,6 @@ namespace VARSpike
 
         public override IResult ToReport()
         {
-            //var resultMatrix = MatrixDefinitionBySet.Define(
-            //    Parameters.ConfidenceIntervals,
-            //    new String[] { "Percentile", "VaR" }
-            //    );
-
             var resultMatrix = MatrixDefinitionBySet2D<double, string>.Define(
                 (ci, s) =>
                 {
@@ -229,8 +242,6 @@ namespace VARSpike
                 {
                     Matrix = resultMatrix
                 },
-                
-                
             };
         }
 

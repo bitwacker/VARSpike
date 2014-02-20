@@ -65,7 +65,9 @@ namespace VARSpike
         public static void WriteLine(string format, params object[] args)
         {
             if (format == null) return;
-            Write(new StringResult(string.Format(format, args)));
+            var txt = string.Format(format, args);
+            var txtStr = txt + Environment.NewLine;
+            Write(new StringResult(txtStr, txtStr));
         }
 
         private class HtmlOut : IDisposable

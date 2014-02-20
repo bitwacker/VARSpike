@@ -107,4 +107,24 @@ namespace VARSpike
             };
         }
     }
+
+    public class MatrixDefinitionBySet4D<T1, T2, T3, T4> : MatrixDefinitionBySet
+    {
+        public static MatrixDefinitionBySet Define(Func<T1, T2, T3, T4, string> renderCell, 
+            IEnumerable<T1> set1, IEnumerable<T2> set2, IEnumerable<T3> set3, IEnumerable<T4> set4 )
+        {
+            var result = new List<List<object>>();
+            result.Add(new List<object>(set1.Cast<object>()));
+            result.Add(new List<object>(set2.Cast<object>()));
+            result.Add(new List<object>(set3.Cast<object>()));
+            result.Add(new List<object>(set4.Cast<object>()));
+
+            return new MatrixDefinitionBySet4D<T1, T2, T3, T4>()
+            {
+                Sets = result,
+                Size = new Vector<int>(result.Select(x => x.Count())),
+                RenderCell = (vector) => renderCell((T1)vector[0], (T2)vector[1], (T3)vector[2], (T4)vector[3])
+            };
+        }
+    }
 }
