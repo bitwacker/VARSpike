@@ -47,18 +47,18 @@ namespace VARSpike
                 //lrVAR.Compute();
                 //Reporter.Write("VaR-LogReturns", lrVAR);
 
-
+                var commonTimeHorizon = 30;
                 var runPack = new List<MonteCarloResult>()
                 {
                     new MonteCarloResult()
                     {
                         Params =  new MonteCarlo.Params()
                         {
-                            Name = "t10 dt8 s1000",
+                            
                             ReturnsType = ReturnType.Log,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(lr.Mean()), ExcelHelper.ToExcelPrecision(lr.StandardDeviation())),
                             InitialPrice = prices.Last(),
-                            TimeHorizon = 10,
+                            TimeHorizon = commonTimeHorizon,
                             ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
                             // Quality
@@ -70,11 +70,11 @@ namespace VARSpike
                     {
                         Params = new MonteCarlo.Params()
                         {
-                            Name = "t10 dt8 s1000",
+                            
                             ReturnsType = ReturnType.Classic,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(cr.Mean()), ExcelHelper.ToExcelPrecision(cr.StandardDeviation())),
                             InitialPrice = prices.Last(),
-                            TimeHorizon = 10,
+                            TimeHorizon = commonTimeHorizon,
                             ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
                             // Quality
@@ -87,11 +87,11 @@ namespace VARSpike
                     {
                         Params =  new MonteCarlo.Params()
                         {
-                            Name = "t10 dt8 s10000",
+                            
                             ReturnsType = ReturnType.Log,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(lr.Mean()), ExcelHelper.ToExcelPrecision(lr.StandardDeviation())),
                             InitialPrice = prices.Last(),
-                            TimeHorizon = 10,
+                            TimeHorizon = commonTimeHorizon,
                             ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
                             // Quality
@@ -103,11 +103,11 @@ namespace VARSpike
                     {
                         Params = new MonteCarlo.Params()
                         {
-                            Name = "t10 dt8 s10000",
+                            
                             ReturnsType = ReturnType.Classic,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(cr.Mean()), ExcelHelper.ToExcelPrecision(cr.StandardDeviation())),
                             InitialPrice = prices.Last(),
-                            TimeHorizon = 10,
+                            TimeHorizon = commonTimeHorizon,
                             ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
                             // Quality
@@ -120,11 +120,11 @@ namespace VARSpike
                     {
                         Params =  new MonteCarlo.Params()
                         {
-                            Name = "t10 dt32 s50000",
+                            
                             ReturnsType = ReturnType.Log,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(lr.Mean()), ExcelHelper.ToExcelPrecision(lr.StandardDeviation())),
                             InitialPrice = prices.Last(),
-                            TimeHorizon = 10,
+                            TimeHorizon = commonTimeHorizon,
                             ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
                             // Quality
@@ -136,11 +136,11 @@ namespace VARSpike
                     {
                         Params = new MonteCarlo.Params()
                         {
-                            Name = "t10 dt32 s50000",
+                            
                             ReturnsType = ReturnType.Classic,
                             ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(cr.Mean()), ExcelHelper.ToExcelPrecision(cr.StandardDeviation())),
                             InitialPrice = prices.Last(),
-                            TimeHorizon = 10,
+                            TimeHorizon = commonTimeHorizon,
                             ConfidenceIntervals = Domain.StandardConfidenceLevels,
 
                             // Quality
@@ -148,15 +148,75 @@ namespace VARSpike
                             Quality_ScenarioCount = 5000
                         }
                     },
+
+                     new MonteCarloResult()
+                    {
+                        Params =  new MonteCarlo.Params()
+                        {
+                            
+                            ReturnsType = ReturnType.Log,
+                            ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(lr.Mean()), ExcelHelper.ToExcelPrecision(lr.StandardDeviation())),
+                            InitialPrice = prices.Last(),
+                            TimeHorizon = commonTimeHorizon,
+                            ConfidenceIntervals = Domain.StandardConfidenceLevels,
+
+                            // Quality
+                            Quality_IntraDaySteps = 32,
+                            Quality_ScenarioCount = 250000,
+                        },
+                    },
+                    new MonteCarloResult()
+                    {
+                        Params = new MonteCarlo.Params()
+                        {
+                            
+                            ReturnsType = ReturnType.Classic,
+                            ReturnsDist = new Normal(ExcelHelper.ToExcelPrecision(cr.Mean()), ExcelHelper.ToExcelPrecision(cr.StandardDeviation())),
+                            InitialPrice = prices.Last(),
+                            TimeHorizon = commonTimeHorizon,
+                            ConfidenceIntervals = Domain.StandardConfidenceLevels,
+
+                            // Quality
+                            Quality_IntraDaySteps = 32,
+                            Quality_ScenarioCount = 250000
+                        }
+                    },
                 };
 
 
                 foreach (var item in runPack)
                 {
-                    using (var timer = new CodeTimerConsole(item.Params.Name))
+                    if (item.Params.Name == null)
                     {
-                        item.MonteCarlo = new MonteCarlo(item.Params);
-                        item.MonteCarlo.Compute();    
+                        item.Params.Name = string.Format("T:{0} Q(s:{1}, dt:{2})", item.Params.TimeHorizon,
+                            item.Params.Quality_ScenarioCount, item.Params.Quality_IntraDaySteps);
+                    }
+                    
+                }
+
+                bool parra = true;
+                if (parra)
+                {
+                    Parallel.ForEach(runPack, item =>
+                    {
+                        using (var timer = new CodeTimerConsole(item.Params.Name))
+                        {
+                            item.MonteCarlo = new MonteCarlo(item.Params);
+                            item.MonteCarlo.Compute();
+                            timer.Count = item.Params.TimeHorizon;
+                        }
+                    });
+                }
+                else
+                {
+                    foreach (var item in runPack)
+                    {
+                        using (var timer = new CodeTimerConsole(item.Params.Name))
+                        {
+                            item.MonteCarlo = new MonteCarlo(item.Params);
+                            item.MonteCarlo.Compute();
+                            timer.Count = item.Params.TimeHorizon;
+                        }
                     }
                 }
 
