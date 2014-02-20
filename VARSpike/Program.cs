@@ -33,19 +33,25 @@ namespace VARSpike
                 //var prices = new Series(repMP.GetPrices().Select(x => x.Value));
                 var prices = new Series(Data.BrentCrude2013);
 
-                //Reporter.Write("Prices", prices);
+                Reporter.Write("Prices", prices);
+
+                var lastPrice = prices.Last();
 
                 var cr = Domain.ClassicReturnSeries(prices);
-                //Reporter.Write("ClassicReturns", cr);
-                //var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels, 0) ;
-                //crVAR.Compute();
-                //Reporter.Write("VaR-ClassicReturns", crVAR);
+                Reporter.Write("ClassicReturns", cr);
+                var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels);
+                crVAR.Interpret = (var) => Domain.ClassicReturnInv(var, lastPrice) - lastPrice;
+                crVAR.InterpretText = "Var delta(Price)";
+                crVAR.Compute();
+                Reporter.Write("VaR-ClassicReturns", crVAR);
 
                 var lr = Domain.LogReturnSeries(prices);
-                //Reporter.Write("LogReturns", lr);
-                //var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels, 0);
-                //lrVAR.Compute();
-                //Reporter.Write("VaR-LogReturns", lrVAR);
+                Reporter.Write("LogReturns", lr);
+                var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels);
+                lrVAR.Interpret = (var) => Domain.LogReturnInv(var, lastPrice) - lastPrice;
+                lrVAR.InterpretText = "Var delta(Price)";
+                lrVAR.Compute();
+                Reporter.Write("VaR-LogReturns", lrVAR);
 
                 var commonTimeHorizon = 30;
                 var runPack = new List<MonteCarloResult>()
@@ -244,7 +250,12 @@ namespace VARSpike
                     
                     )));
 
-
+                
+                var simpleVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels, commonTimeHorizon);
+                simpleVAR.Interpret = (var) => Domain.LogReturnInv(var, lastPrice) - lastPrice;
+                simpleVAR.InterpretText = "Var delta(Price)";
+                simpleVAR.Compute();
+                Reporter.Write("SimpleVar Using LogReturns", simpleVAR);
             }
         }
 

@@ -16,11 +16,21 @@ namespace VARSpike
             return (now - prev) / prev;
         }
 
+        public static double ClassicReturnInv(double classicReturn, double price)
+        {
+            return price + price * classicReturn;
+        }
+
         public static double LogReturn(double now, double prev)
         {
             return Math.Log(now / prev, Constants.E);
         }
 
+
+        public static double LogReturnInv(double logReturn, double price)
+        {
+            return price * Math.Exp(logReturn);
+        }
       
 
         public static double NormalConfidenceIntervalNegOnly(double ci)
@@ -54,10 +64,8 @@ namespace VARSpike
             return result;
         }
 
-        public static double LogReturnInv(double logReturn, double price)
-        {
-            return price * Math.Exp(logReturn);
-        }
+
+        
     }
 
     public class MathHelper

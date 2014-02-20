@@ -136,7 +136,7 @@ namespace VARSpike
             ResultPercentile = ci.Select(x => QuantileFromRankedSeries(this, x) - initialPrice).ToList();
             
             // Var-CoVar Method
-            ResultVarCoVar = new ValueAtRisk(this.NormalDistribution, ci, initialPrice);
+            ResultVarCoVar = new ValueAtRisk(this.NormalDistribution, ci);
             ResultVarCoVar.Compute();
 
             //var walkReturns = Domain.LogReturnSeries(this);
