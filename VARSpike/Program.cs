@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace VARSpike
                 Reporter.Write("ClassicReturns", cr);
                 var crVAR = new ValueAtRisk(new Normal(cr.Mean(), cr.StandardDeviation()), Domain.StandardConfidenceLevels);
                 crVAR.Interpret = (var) => Domain.ClassicReturnInv(var, lastPrice) - lastPrice;
-                crVAR.InterpretText = "Var delta(Price)";
+                crVAR.InterpretText = "VaR delta(Price)";
                 crVAR.Compute();
                 Reporter.Write("VaR-ClassicReturns", crVAR);
 
@@ -49,7 +50,7 @@ namespace VARSpike
                 Reporter.Write("LogReturns", lr);
                 var lrVAR = new ValueAtRisk(new Normal(lr.Mean(), lr.StandardDeviation()), Domain.StandardConfidenceLevels);
                 lrVAR.Interpret = (var) => Domain.LogReturnInv(var, lastPrice) - lastPrice;
-                lrVAR.InterpretText = "Var delta(Price)";
+                lrVAR.InterpretText = "VaR delta(Price)";
                 lrVAR.Compute();
                 Reporter.Write("VaR-LogReturns", lrVAR);
 
@@ -236,11 +237,15 @@ namespace VARSpike
                         var calc = calcWrap.MonteCarlo;
                         if (type == VaRMethod.Normal)
                         {
-                            return TextHelper.ToCell(calc.ResultVarCoVar.Results[calc.Parameters.ConfidenceIntervals.IndexOf(ci)].Item2);
+                            return TextHelper.ToCell(
+                                calc.ResultVarCoVar.Results[calc.Parameters.ConfidenceIntervals.IndexOf(ci)].Item2 - calc.Parameters.InitialPrice
+                                );
                         }
                         else // Percentile
                         {
-                            return TextHelper.ToCell(calc.ResultPercentile[calc.Parameters.ConfidenceIntervals.IndexOf(ci)]);
+                            return TextHelper.ToCell(
+                                calc.ResultPercentile[calc.Parameters.ConfidenceIntervals.IndexOf(ci)]
+                                 );
                         }
                     },
                     Domain.StandardConfidenceLevels,
@@ -255,7 +260,7 @@ namespace VARSpike
                 simpleVAR.Interpret = (var) => Domain.LogReturnInv(var, lastPrice) - lastPrice;
                 simpleVAR.InterpretText = "Var delta(Price)";
                 simpleVAR.Compute();
-                Reporter.Write("SimpleVar Using LogReturns", simpleVAR);
+                Reporter.Write("Simple VaR using LogReturns", simpleVAR);
             }
         }
 

@@ -137,6 +137,8 @@ namespace VARSpike
             
             // Var-CoVar Method
             ResultVarCoVar = new ValueAtRisk(this.NormalDistribution, ci);
+            ResultVarCoVar.Interpret = (var) => var - initialPrice;
+            ResultVarCoVar.InterpretText = "VaR delta(Price)";
             ResultVarCoVar.Compute();
 
             //var walkReturns = Domain.LogReturnSeries(this);
@@ -201,10 +203,15 @@ namespace VARSpike
                     switch (s)
                     {
                         case("Percentile") :
-                            return ResultPercentile[Parameters.ConfidenceIntervals.IndexOf(ci)].ToString();
+                            return TextHelper.ToCell(
+                                 ResultPercentile[Parameters.ConfidenceIntervals.IndexOf(ci)]
+                                 );
 
                         case ("VaR-OnPrice"):
-                            return ResultVarCoVar.Results[Parameters.ConfidenceIntervals.IndexOf(ci)].Item2.ToString();
+                            return TextHelper.ToCell(
+                                 ResultVarCoVar.Results[Parameters.ConfidenceIntervals.IndexOf(ci)].Item2 - initialPrice
+                                 );
+                            
 
                         //case ("VaR-Returns"):
                         //    return ResultVarCoVarReturns.Results[Parameters.ConfidenceIntervals.IndexOf(ci)].Item2.ToString();
