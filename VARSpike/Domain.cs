@@ -54,7 +54,10 @@ namespace VARSpike
 
         public static Series LogReturnSeries(Series prices)
         {
-            var result = new Series();
+            var result = new Series()
+            {
+                UnitOfMeasure = UnitOfMeasure.ReturnLog,
+            };
             var last = prices.First();
             foreach (var p in prices.Skip(1))
             {

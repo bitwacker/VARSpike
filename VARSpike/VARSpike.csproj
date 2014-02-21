@@ -51,6 +51,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CalculationCorrelation.cs" />
+    <Compile Include="CalculationMonteCarloTimeHorizon.cs" />
     <Compile Include="CodeTimer.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Domain.cs" />
@@ -62,6 +64,7 @@
     <Compile Include="RandomWrapper.cs" />
     <Compile Include="ReportHelper.cs" />
     <Compile Include="ResultReport.cs" />
+    <Compile Include="Series.cs" />
     <Compile Include="SmallDBHelper.cs" />
     <Compile Include="GeneralTests.cs" />
     <Compile Include="TextHelper.cs" />

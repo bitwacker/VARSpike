@@ -28,7 +28,7 @@ namespace VARSpike
     public enum VaRMethod
     {
         Percentile,
-        Normal
+        VarCoVar
     }
     
 
