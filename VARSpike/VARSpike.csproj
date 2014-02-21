@@ -54,7 +54,9 @@
     <Compile Include="CalculationCorrelation.cs" />
     <Compile Include="CalculationMonteCarloTimeHorizon.cs" />
     <Compile Include="CodeTimer.cs" />
-    <Compile Include="Data.cs" />
+    <Compile Include="Data\FileDataHelper.cs" />
+    <Compile Include="FileFormats\FileImportCSV.cs" />
+    <Compile Include="StaticData.cs" />
     <Compile Include="Domain.cs" />
     <Compile Include="MarketPriceRepository.cs" />
     <Compile Include="UIMatrixDefinition.cs" />
@@ -73,6 +75,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Data\Data---RiskLearn--Analytical-VaR.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +85,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -7,6 +7,7 @@ using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.LinearAlgebra.Generic;
 using MathNet.Numerics.Statistics;
+using VARSpike.Data;
 
 namespace VARSpike
 {
@@ -28,13 +29,7 @@ namespace VARSpike
         {
             using (Reporter.HtmlOutput("CalculationCorrelation.html"))
             {
-                var prices = new Series[]
-                {
-                    Data.SharesApple,
-                    Data.SharesMicrosoft,
-                    Data.SharesGoogle,
-                    Data.SharesOracle,
-                };
+                var prices = FileDataHelper.Load_RiskLearn_SetA().Take(5);
 
                 var sources = prices.Select(x =>
                 {
@@ -45,14 +40,20 @@ namespace VARSpike
                     };
                 }).ToList();
 
+                foreach (var src in sources)
+                {
+                    Reporter.WriteLine("Series: {0,20} PriceCount: {1} ReturnCount: {2} giving {3}", src.Name, src.PriceHistory.Count, src.Returns.Count, src.Returns.NormalDistribution);
+                }
+
                 var corrMatrix = DenseMatrix.Create(sources.Count, sources.Count,
                     (r, c) => Correlation.Pearson(sources[r].Returns, sources[c].Returns));
                 Reporter.Write("Correlation Matrix", new MathMatrixResults(corrMatrix));
 
-                var stdDevMatrix = DenseMatrix.Create(1, sources.Count, (r, c) => sources[c].Returns.StandardDeviation() * Math.Sqrt(sources[c].Returns.Count));
+                var stdDevMatrix = DenseMatrix.Create(1, sources.Count, 
+                    (r, c) => sources[c].Returns.StandardDeviation() * Math.Sqrt(sources[c].Returns.Count));
                 Reporter.Write("StdDev Matrix", new MathMatrixResults(stdDevMatrix));
 
-                var weightings = DenseMatrix.OfArray(new double[,] {{0.1, 0.2, 0.3, 0.4}});
+                var weightings = DenseMatrix.OfArray(new double[,] {{ 150000, 200000, 300000,  150000, 200000 }});
                 Reporter.Write("Weightings Matrix", new MathMatrixResults(weightings));
 
                 var port = PortfolioVariance(weightings, stdDevMatrix, corrMatrix);
@@ -63,9 +64,12 @@ namespace VARSpike
 
         private double PortfolioVariance(Matrix<double> weightings, Matrix<double> stdDevMatrix, Matrix<double> corrMatrix)
         {
-            var ws =  DenseMatrix.Create(1, weightings.ColumnCount, (r,c) => weightings[0, c] * stdDevMatrix[0, c]);
+            var ws =  DenseMatrix.Create(1, weightings.ColumnCount, (r,c) => (stdDevMatrix[0, c]/Math.Sqrt(250)) * weightings[0,c] * 2.33);
+            Reporter.Write("ws", new MathMatrixResults(ws));
             var wsT = ws.Transpose();
-            return  (ws * corrMatrix * wsT)[0,0];
+            Reporter.Write("wst", new MathMatrixResults(wsT));
+            
+            return  Math.Sqrt((ws * corrMatrix * wsT)[0,0]);
         }
 
         private IEnumerable<Tuple<T,T>> SetPermutation<T>(IEnumerable<T> sets)

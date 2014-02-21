@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra.Double;
 using NUnit.Framework;
+using VARSpike.Data;
+using VARSpike.FileFormats;
 
 namespace VARSpike
 {
@@ -57,6 +61,35 @@ namespace VARSpike
                 {2,2,2,2},
             });
             Console.WriteLine(r1 * m);
+        }
+
+        [Test]
+        public void TestCSV_Series()
+        {
+            var res = FileDataHelper.Load_RiskLearn_SetA();
+        }
+
+        [Test]
+        public void TestCSV_Direct()
+        {
+            using (var file = new StreamReader("./Data/Data---RiskLearn--Analytical-VaR.csv"))
+            {
+                var xxx = FileImportCSV.Parse<Sample>(file, 
+                    new FileImportCSV.ColumnParser<Sample>()
+                    {
+                        ColumnName = "Dates",
+                        ParseColumn = (data, cell) => data.At = DateTime.Parse(cell)
+                    },
+                    new FileImportCSV.ColumnParser<Sample>()
+                    {
+                        ColumnName = "IBM",
+                        ParseColumn = (data, cell) => data.Value = double.Parse(cell)
+                    }
+                );
+                
+                Assert.AreEqual(251, xxx.Count());
+            }
+            
         }
     }
 }

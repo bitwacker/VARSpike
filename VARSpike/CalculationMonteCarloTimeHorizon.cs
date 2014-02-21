@@ -24,7 +24,7 @@ namespace VARSpike
                 
                 //var repMP = new MarketPriceRepository();
                 //var prices = new Series(repMP.GetPrices().Select(x => x.Value));
-                var prices = new Series(Data.BrentCrude2013);
+                var prices = new Series(StaticData.BrentCrude2013);
 
                 Reporter.Write("Prices", prices);
 

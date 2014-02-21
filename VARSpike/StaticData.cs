@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VARSpike
 {
-    public static class Data
+    public static class StaticData
     {
         public static Series SharesApple = new Series(new Double[]
         {

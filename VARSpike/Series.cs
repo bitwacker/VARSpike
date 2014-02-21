@@ -73,4 +73,17 @@ namespace VARSpike
             };
         }
     }
+
+    public class TimeSeries : List<ISample>, IEnumerable<double>, IReporter
+    {
+        public IResult ToReport()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerator<double> GetEnumerator()
+        {
+            return System.Linq.Enumerable.Select((List<ISample>)this , x => x.Value).GetEnumerator();
+        }
+    }
 }
