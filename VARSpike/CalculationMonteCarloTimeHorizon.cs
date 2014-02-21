@@ -253,7 +253,7 @@ namespace VARSpike
 
                 Reporter.Write(new HeadingResult("COMPARISON"));
 
-                Reporter.Write(new MatrixResult(MatrixDefinitionBySet4D<double, string, ReturnType, VaRMethod>.Define(
+                Reporter.Write(new UIMatrixResult(UiMatrixDefinitionBySet4D<double, string, ReturnType, VaRMethod>.Define(
                     (ci, name, method, type) =>
                     {
                         var calcWrap = runPack.FirstOrDefault(x=>x.Params.Name == name && x.Params.ReturnsType == method);

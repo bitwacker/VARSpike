@@ -57,7 +57,7 @@
     <Compile Include="Data.cs" />
     <Compile Include="Domain.cs" />
     <Compile Include="MarketPriceRepository.cs" />
-    <Compile Include="MatrixDefinition.cs" />
+    <Compile Include="UIMatrixDefinition.cs" />
     <Compile Include="MonteCarlo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

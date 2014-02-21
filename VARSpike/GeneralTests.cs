@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MathNet.Numerics.LinearAlgebra.Double;
 using NUnit.Framework;
 
 namespace VARSpike
@@ -36,13 +37,26 @@ namespace VARSpike
             };
 
 
-            var res = MatrixResult.TreeProduct(set);
+            var res = UIMatrixResult.TreeProduct(set);
             foreach (var pair in res)
             {
                 Console.WriteLine(pair);
             }
 
 
+        }
+
+        [Test]
+        public void Matrix()
+        {
+            var m = DenseMatrix.Create(4, 3, (r, c) => r * 3 + (c+1));
+            Console.WriteLine(m);
+
+            var r1 = DenseMatrix.OfArray(new double[,]
+            {
+                {2,2,2,2},
+            });
+            Console.WriteLine(r1 * m);
         }
     }
 }

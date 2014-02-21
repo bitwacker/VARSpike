@@ -9,6 +9,8 @@ using System.Runtime.ExceptionServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
+using MathNet.Numerics.LinearAlgebra.Complex;
+using MathNet.Numerics.LinearAlgebra.Generic;
 using MathNet.Numerics.LinearAlgebra.Generic.Solvers.Status;
 using MathNet.Numerics.Random;
 
@@ -316,19 +318,27 @@ namespace VARSpike
         }
     }
 
-
-    public class MatrixResult : IResult
+    public class MathMatrixResults : UIMatrixResult
     {
-        public MatrixResult()
+        public MathMatrixResults(Matrix<double> mathMatrix)
+            : base(UIMatrixDefinition.Matrix(mathMatrix))
+        {
+        }
+    }
+
+
+    public class UIMatrixResult : IResult
+    {
+        public UIMatrixResult()
         {
         }
 
-        public MatrixResult(MatrixDefinition matrix)
+        public UIMatrixResult(UIMatrixDefinition uiMatrix)
         {
-            Matrix = matrix;
+            UiMatrix = uiMatrix;
         }
 
-        public MatrixDefinition Matrix { get; set; }
+        public UIMatrixDefinition UiMatrix { get; set; }
 
         public void Output(ReportFormat format, TextWriter writer)
         {
@@ -337,11 +347,11 @@ namespace VARSpike
 
             // Horz Headers
             writer.WriteLine("<tr>");
-            writer.WriteLine("<td class='null' colspan='{0}'></td>", Matrix.Size.Count-1);
-            for (int cc = 0; cc < Matrix.Size[0]; cc++)
+            writer.WriteLine("<td class='null' colspan='{0}'></td>", UiMatrix.Size.Count-1);
+            for (int cc = 0; cc < UiMatrix.Size[0]; cc++)
             {
                 writer.Write("<th>");
-                writer.Write(Matrix.GetHeading(0, cc));
+                writer.Write(UiMatrix.GetHeading(0, cc));
                 writer.Write("</th>");    
             }
             writer.WriteLine("</tr>");
@@ -359,18 +369,18 @@ namespace VARSpike
                     if (rowSpan > 0)
                     {
                         writer.Write("<th rowspan='{0}'>", rowSpan);
-                        writer.Write(Matrix.GetHeading(col + 1, row[col]));
+                        writer.Write(UiMatrix.GetHeading(col + 1, row[col]));
                         writer.Write("</th>");        
                     }
                 }
 
                 // Data Over- Dim0
-                for (int cc = 0; cc < Matrix.Size[0]; cc++)
+                for (int cc = 0; cc < UiMatrix.Size[0]; cc++)
                 {
                     var pos = new Vector<int>(row);
                     pos.Insert(0, cc);
                     writer.Write("<td>");
-                    writer.Write(Matrix.GetCell(pos));
+                    writer.Write(UiMatrix.GetCell(pos));
                     writer.Write("</td>");
                 }
 
@@ -399,7 +409,7 @@ namespace VARSpike
         private IEnumerable<Vector<int>> GetRowSpecs()
         {
             
-            var innerCounts = new List<int>(Matrix.Size);
+            var innerCounts = new List<int>(UiMatrix.Size);
             innerCounts.RemoveAt(0);
             return TreeProduct(innerCounts);
             
@@ -438,9 +448,9 @@ namespace VARSpike
             }
         }
 
-        private int RowCount(MatrixDefinition matrix)
+        private int RowCount(UIMatrixDefinition uiMatrix)
         {
-            return matrix.Size.Skip(1).Max();
+            return uiMatrix.Size.Skip(1).Max();
         }
     }
 

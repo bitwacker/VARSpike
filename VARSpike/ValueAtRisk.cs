@@ -52,7 +52,7 @@ namespace VARSpike
             
             return new CompountResult()
             {
-                new MatrixResult(MatrixDefinitionBySet2D<double, string>.Define(
+                new UIMatrixResult(UiMatrixDefinitionBySet2D<double, string>.Define(
                     (ci, r) =>
                     {
                         if (r == "Percentile") return TextHelper.ToCell(PriceResults[ConfidenceIntervals.IndexOf(ci)].Item2);
@@ -133,7 +133,7 @@ namespace VARSpike
                     {"Dist", Distribution},
                     {"DeltaTime", DeltaTime},
                 },
-                new MatrixResult(MatrixDefinitionBySet2D<double, string>.Define(
+                new UIMatrixResult(UiMatrixDefinitionBySet2D<double, string>.Define(
                     (ci, r) =>
                     {
                         if (r == "VaR") return TextHelper.ToCell(Results[ConfidenceIntervals.IndexOf(ci)].Item2);

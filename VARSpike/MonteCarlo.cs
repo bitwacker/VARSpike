@@ -206,7 +206,7 @@ namespace VARSpike
 
         public override IResult ToReport()
         {
-            var resultMatrix = MatrixDefinitionBySet2D<double, string>.Define(
+            var resultMatrix = UiMatrixDefinitionBySet2D<double, string>.Define(
                 (ci, s) =>
                 {
                     switch (s)
@@ -254,9 +254,9 @@ namespace VARSpike
                 ReportHelper.ToReport(Histogram),
                 new VerboseResult(WriteVerbose),
                 new HeadingResult("Results"),
-                new MatrixResult()
+                new UIMatrixResult()
                 {
-                    Matrix = resultMatrix
+                    UiMatrix = resultMatrix
                 },
             };
         }
