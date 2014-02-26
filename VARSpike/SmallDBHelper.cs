@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -146,6 +148,50 @@ namespace VARSpike
             {
                 throw new Exception("SQL Failed: " + sqlText, ex);
             }
+        }
+
+        public static T ExecuteQueryScalar<T>(string connectionString, string sql, params object[] sqlParams)
+        {
+            if (connectionString == null) throw new ArgumentNullException("connectionString");
+
+            var sqlText = SafeStringFormat(sql, Escape(sqlParams));
+
+
+            try
+            {
+                using (var conn = new SqlConnection(connectionString))
+                {
+
+                    if (conn.State != ConnectionState.Open)
+                    {
+                        conn.Open();
+                    }
+
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = sqlText;
+                        var res = command.ExecuteScalar();
+                        try
+                        {
+                            return (T)res;
+                        }
+                        catch (Exception)
+                        {
+                            throw new Exception(string.Format("Expected {0}, but got {1}", typeof(T), res.GetType()));
+                        }
+                        
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("SQL Failed: " + sqlText, ex);
+            }
+        }
+
+        public static string BuildConnectionString(string dbName, string server = "localhost")
+        {
+            return string.Format("Server={1};Database={0};Trusted_Connection=True;", dbName, server);
         }
     }
 }

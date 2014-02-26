@@ -55,7 +55,9 @@
     <Compile Include="CalculationMonteCarloTimeHorizon.cs" />
     <Compile Include="CodeTimer.cs" />
     <Compile Include="Data\FileDataHelper.cs" />
+    <Compile Include="DateRange.cs" />
     <Compile Include="FileFormats\FileImportCSV.cs" />
+    <Compile Include="IndexAnalysis.cs" />
     <Compile Include="StaticData.cs" />
     <Compile Include="Domain.cs" />
     <Compile Include="MarketPriceRepository.cs" />

@@ -77,14 +77,14 @@ namespace VARSpike
 
     public class ValueAtRisk : IReporter
     {
-        public ValueAtRisk(Normal distribution, List<double> confidenceIntervals)
+        public ValueAtRisk(IDistribution distribution, List<double> confidenceIntervals)
         {
             this.ConfidenceIntervals = confidenceIntervals;
             Distribution = distribution;
             DeltaTime = 1;
         }
 
-        public ValueAtRisk(Normal distribution, List<double> confidenceIntervals, double deltaTime)
+        public ValueAtRisk(IDistribution distribution, List<double> confidenceIntervals, double deltaTime)
         {
             Distribution = distribution;
             ConfidenceIntervals = confidenceIntervals;
@@ -93,9 +93,9 @@ namespace VARSpike
 
         // Input
         public double DeltaTime { get; set; }
-        public List<Interpretation> Interpretations { get; set; } 
-        
-        public Normal Distribution { get; private set; }
+        public List<Interpretation> Interpretations { get; set; }
+
+        public IDistribution Distribution { get; private set; }
         public List<double> ConfidenceIntervals { get; private set; }
 
         // Output

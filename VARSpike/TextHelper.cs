@@ -70,23 +70,31 @@ namespace VARSpike
 
         public static string ToCell(double d)
         {
-            return d.ToString("0.000000").PadLeft(11);
+            if (Debug)
+            {
+                return d.ToString();
+            }
+            return d.ToString(NumberFormat).PadLeft(NumberFormat.Length + 4);
         }
+
+        public static bool Debug = false;
+        public static string NumberFormat = "0.0000";
 
         public  static string ToCell(object d, ReportFormat fmt = ReportFormat.Console)
         {
-            
 
-            var normal = d as Normal;
+            if (d == null) return null;
+
+            var normal = d as IDistribution;
             if (normal != null)
             {
                 if (fmt == ReportFormat.Html)
                 {
-                    return string.Format("Norm[{0}={1}, {2}={3}]", Symbol.Mu_Html, ToCell(normal.Mean), Symbol.Sigma_Html, ToCell(normal.StdDev));
+                    return string.Format("Dist[{0}={1}, {2}={3}]", Symbol.Mu_Html, ToCell(normal.Mean), Symbol.Sigma_Html, ToCell(normal.StdDev));
                 }
                 else
                 {
-                    return string.Format("Norm[{0}={1}, {2}={3}]", Symbol.Mu, ToCell(normal.Mean), Symbol.Sigma, ToCell(normal.StdDev));    
+                    return string.Format("Dist[{0}={1}, {2}={3}]", Symbol.Mu, ToCell(normal.Mean), Symbol.Sigma, ToCell(normal.StdDev));    
                 }
                 
             }

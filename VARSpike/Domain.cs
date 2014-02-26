@@ -40,7 +40,7 @@ namespace VARSpike
             return norm.InverseCumulativeDistribution((1 - ci));
         }
 
-        public static Series ClassicReturnSeries(Series prices)
+        public static Series ClassicReturnSeries(ISeries prices)
         {
             var result = new Series();
             var last = prices.First();
@@ -52,7 +52,7 @@ namespace VARSpike
             return result;
         }
 
-        public static Series LogReturnSeries(Series prices)
+        public static Series LogReturnSeries(ISeries prices)
         {
             var result = new Series()
             {

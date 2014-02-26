@@ -237,7 +237,7 @@ namespace VARSpike
             return ToTable(source);
         }
 
-        public static string ToTable(IEnumerable data)
+        public static string ToTable(IEnumerable data, int itemsPerLine = 10)
         {
             var sb = new StringBuilder();
 
@@ -254,7 +254,7 @@ namespace VARSpike
                 open = true;
 
                 cc++;
-                if (cc % 10 == 0)
+                if (cc % itemsPerLine == 0)
                 {
                     sb.AppendLine("</tr>");
                     sb.AppendLine("<tr>");

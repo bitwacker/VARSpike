@@ -42,7 +42,7 @@ namespace VARSpike
 
                 foreach (var src in sources)
                 {
-                    Reporter.WriteLine("Series: {0,20} PriceCount: {1} ReturnCount: {2} giving {3}", src.Name, src.PriceHistory.Count, src.Returns.Count, src.Returns.NormalDistribution);
+                    Reporter.WriteLine("Series: {0,20} PriceCount: {1} ReturnCount: {2} giving {3}", src.Name, src.PriceHistory.Count, src.Returns.Count, src.Returns.Distribution);
                 }
 
                 var corrMatrix = DenseMatrix.Create(sources.Count, sources.Count,
@@ -64,6 +64,7 @@ namespace VARSpike
 
         private double PortfolioVariance(Matrix<double> weightings, Matrix<double> stdDevMatrix, Matrix<double> corrMatrix)
         {
+            // p = w'T.cor.w
             var ws =  DenseMatrix.Create(1, weightings.ColumnCount, (r,c) => (stdDevMatrix[0, c]/Math.Sqrt(250)) * weightings[0,c] * 2.33);
             Reporter.Write("ws", new MathMatrixResults(ws));
             var wsT = ws.Transpose();
