@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using MathNet.Numerics;
 using MathNet.Numerics.Distributions;
@@ -24,6 +25,12 @@ namespace VARSpike
         public static double LogReturn(double now, double prev)
         {
             return Math.Log(now / prev, Constants.E);
+        }
+
+        public static Sample LogReturn(ISample now, ISample prev)
+        {
+            if (now.At < prev.At) throw new InvalidDataException();
+            return new Sample(now.At, Math.Log(now.Value / prev.Value, Constants.E));
         }
 
 
@@ -67,6 +74,21 @@ namespace VARSpike
             return result;
         }
 
+
+        public static TimeSeries LogReturnSeries(TimeSeries prices)
+        {
+            var result = new TimeSeries()
+            {
+                UnitOfMeasure = UnitOfMeasure.ReturnLog,
+            };
+            var last = prices.First<ISample>();
+            foreach (var p in prices.Skip<ISample>(1))
+            {
+                result.Add(LogReturn(p, last));
+                last = p;
+            }
+            return result;
+        }
 
         
     }

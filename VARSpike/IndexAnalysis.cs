@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MathNet.Numerics.Statistics;
 
 namespace VARSpike
 {
@@ -23,6 +24,23 @@ namespace VARSpike
                 foreach (var year in index)
                 {
                     Reporter.WriteLine("{0,-40} Y{1} => {2}", index.Name, year.Year, year.Returns.ToStringSummay());
+                }
+            }
+
+            // Correlations
+            var yearTarget = 2013;
+            foreach (var a in seg)
+            {
+                foreach (var b in seg)
+                {
+
+                    if (a[yearTarget] == null || b[yearTarget] == null) continue;
+                    if (a[yearTarget].Returns == null || b[yearTarget].Returns == null) continue;
+
+                    var commonDataSet = MarketSegment.GetCommonResult.Find(a[yearTarget].Returns, b[yearTarget].Returns);
+
+                    var corr = Correlation.Pearson(commonDataSet.CommonA, commonDataSet.CommonB);
+                    Reporter.WriteLine("{0,-35}<->{1,-35} Corr = {2}", a.Name, b.Name, corr);
                 }
             }
 
@@ -78,17 +96,7 @@ namespace VARSpike
                 this.Add(index);
             }
 
-            //// Correlations
-            //var yearTarget = 2013;
-            //foreach (var a in indexes)
-            //{
-            //    foreach (var b in indexes)
-            //    {
-            //        if (a[yearTarget] == null && b[yearTarget] == null) continue;
-
-            //        var commonDataSet = GetCommonResult.Find(a[yearTarget].Returns, b[yearTarget].Returns);
-            //    }
-            //}
+        
           
 
 
@@ -114,13 +122,19 @@ namespace VARSpike
                 res.CommonA = new TimeSeries();
                 res.CommonB = new TimeSeries();
 
-                //foreach (var d in intersect)
-                //{
-                //    var dA = a[d];
-                //    var dB = b[d];
-                    
-                //}
-                return null;
+                foreach (var d in intersect)
+                {
+                    var dA = a[d];
+                    var dB = b[d];
+
+                    if (dA != null && dB != null)
+                    {
+                        res.CommonA.Add(dA);
+                        res.CommonB.Add(dB);
+                    }
+
+                }
+                return res;
             }
 
             public static DateRange GetRange(IEnumerable<ISample> a)
@@ -156,6 +170,6 @@ namespace VARSpike
     {
         public int Year { get; set; }
         public TimeSeries Prices { get; set; }
-        public ISeries Returns { get; set; }
+        public TimeSeries Returns { get; set; }
     }
 }

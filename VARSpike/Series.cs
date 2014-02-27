@@ -128,6 +128,15 @@ namespace VARSpike
         {
         }
 
+        public ISample this[DateTime date]
+        {
+            get
+            {
+                date = date.Date;
+                return this.Find(x => x.At == date);
+            }
+        }
+
         public string ToStringSummay()
         {
             return Series.ToSummary(this);
