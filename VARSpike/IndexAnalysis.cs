@@ -8,39 +8,44 @@ namespace VARSpike
     {
         public void Calculate(string[] args)
         {
-            var seg = new MarketSegment();
-            seg.FromSQL(SmallDBHelper.BuildConnectionString("NimbusT"));
-
-            foreach (var index in seg)
+            using (Reporter.HtmlOutput("IndexAnalysis.html"))
             {
-                foreach (var year in index)
+
+                var seg = new MarketSegment();
+                seg.FromSQL(SmallDBHelper.BuildConnectionString("NimbusT"));
+
+                foreach (var index in seg)
                 {
-                    Reporter.WriteLine("{0,-40} Y{1} => {2}", index.Name,  year.Year, year.Prices.ToStringSummay());
+                    foreach (var year in index)
+                    {
+                        Reporter.WriteLine("{0,-40} Y{1} => {2}", index.Name, year.Year, year.Prices.ToStringSummay());
+                    }
                 }
-            }
-            Reporter.WriteLine("========================================");
-            foreach (var index in seg)
-            {
-                foreach (var year in index)
+                Reporter.WriteLine("========================================");
+                foreach (var index in seg)
                 {
-                    Reporter.WriteLine("{0,-40} Y{1} => {2}", index.Name, year.Year, year.Returns.ToStringSummay());
+                    foreach (var year in index)
+                    {
+                        Reporter.WriteLine("{0,-40} Y{1} => {2}", index.Name, year.Year, year.Returns.ToStringSummay());
+                    }
                 }
-            }
 
-            // Correlations
-            var yearTarget = 2013;
-            foreach (var a in seg)
-            {
-                foreach (var b in seg)
+                // Correlations
+                var yearTarget = 2013;
+                foreach (var a in seg)
                 {
+                    foreach (var b in seg)
+                    {
 
-                    if (a[yearTarget] == null || b[yearTarget] == null) continue;
-                    if (a[yearTarget].Returns == null || b[yearTarget].Returns == null) continue;
+                        if (a[yearTarget] == null || b[yearTarget] == null) continue;
+                        if (a[yearTarget].Returns == null || b[yearTarget].Returns == null) continue;
 
-                    var commonDataSet = MarketSegment.GetCommonResult.Find(a[yearTarget].Returns, b[yearTarget].Returns);
+                        var commonDataSet = MarketSegment.GetCommonResult.Find(a[yearTarget].Returns,
+                            b[yearTarget].Returns);
 
-                    var corr = Correlation.Pearson(commonDataSet.CommonA, commonDataSet.CommonB);
-                    Reporter.WriteLine("{0,-35}<->{1,-35} Corr = {2}", a.Name, b.Name, corr);
+                        var corr = Correlation.Pearson(commonDataSet.CommonA, commonDataSet.CommonB);
+                        Reporter.WriteLine("{0,-35}<->{1,-35} Corr = {2}", a.Name, b.Name, corr);
+                    }
                 }
             }
 
